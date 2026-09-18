@@ -87,6 +87,17 @@
      control (botón, opción de diálogo, icono con acción). */
   --objetivo-tactil-min: 44px;
   --radio: 0.75rem;
+  /* Redondeo grande, para los paneles que flotan sobre el mundo. Una
+     esquina marcada se lee como "formulario"; una redonda, como "algo del
+     juego". Es la misma forma que tienen las piezas del kit 3D. */
+  --radio-grande: 1.25rem;
+  /* Pastilla: los controles pequeños que flotan en una esquina. */
+  --radio-pastilla: 999px;
+
+  /* Sombra de los paneles que se apoyan sobre la escena. Separa el panel del
+     mundo sin necesidad de un borde grueso, que a estos tamaños ensucia. */
+  --sombra-flotante: 0 2px 10px rgba(29, 33, 37, 0.18);
+  --sombra-panel: 0 6px 24px rgba(29, 33, 37, 0.22);
   --anillo-foco: 3px solid var(--color-acento);
   --anillo-foco-separacion: 2px;
 }
