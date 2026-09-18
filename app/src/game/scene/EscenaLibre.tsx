@@ -183,8 +183,21 @@ export function EscenaLibre({ alEmpezarEpisodio, ageMode }: EscenaLibreProps) {
 
   const tituloCercano = cerca === null ? null : tituloDe(cerca);
 
+  // Bug de superposición (captura real de celular en vertical): el botón de
+  // "Hablar con..." / "Empezar aquí" quedaba tapado detrás del joystick y
+  // los botones de girar/saltar, ambos pegados al mismo borde inferior de
+  // la pantalla. Esta clase es la condición exacta con la que se decide si
+  // esos controles están en pantalla —la misma que usa `ControlesTactiles`
+  // más abajo—, así que el CSS que reserva espacio para `.mundo__oferta`
+  // (`juego.css`) nunca puede desacoplarse de si los controles están de
+  // verdad ahí. El `@media` de ese mismo bloque es la red de seguridad para
+  // el instante antes de que React monte este estado.
+  const claseDelMundo = hayControlesEnPantalla
+    ? "mundo mundo--con-controles-tactiles"
+    : "mundo";
+
   return (
-    <section className="mundo" aria-label={TEXTOS_UI.mundo.region}>
+    <section className={claseDelMundo} aria-label={TEXTOS_UI.mundo.region}>
       <LienzoDeEscena
         escena={null}
         className="escena escena--mundo"

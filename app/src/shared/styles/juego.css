@@ -468,6 +468,74 @@
   font-size: 1rem;
 }
 
+/* Bug reportado con una captura real de celular en vertical: el botón de
+   "Hablar con..." quedaba pegado en la misma fila que el joystick y los
+   botones de girar/saltar, con el texto cortado detrás del control
+   circular. Pasa porque `.mundo` es una columna flex con
+   `justify-content: flex-end`, así que `.mundo__oferta` cae exactamente al
+   borde inferior de la pantalla — el mismo sitio donde flota
+   `.controles-tactiles` (`position: fixed`, ver controles-tactiles.css). Se
+   corrige reservándole aire abajo, no moviendo ni encogiendo los controles.
+
+   Cubre las dos ofertas que existen ("Hablar con [nombre]" y "Empezar aquí:
+   [episodio]"): las dos usan esta misma clase (EscenaLibre.tsx), así que
+   arreglarla una vez cubre ambos casos, y cualquier otra que se agregue
+   después con la misma clase.
+
+   Medidas de despeje, leídas de controles-tactiles.css:
+     ancho >= 30rem: inset-block-end 1rem   + joystick 7rem = 8rem
+     ancho <  30rem: inset-block-end 0.5rem + joystick 6rem = 6.5rem
+   (el joystick es el elemento más alto del grupo; el botón de saltar mide
+   4.25rem, menos que el joystick en ambos anchos). A eso se le suma un
+   margen de aire para que el botón no quede pegado al borde del control.
+
+   Dos mecanismos, a propósito:
+   1. `.mundo--con-controles-tactiles` es la clase que pone React
+      (EscenaLibre.tsx) exactamente cuando `useControlesEnPantalla()` decide
+      mostrar los controles: es la MISMA condición que usa el componente que
+      los dibuja, así que no puede divergir de si los controles están de
+      verdad en pantalla.
+   2. El `@media` de abajo es una red de seguridad para el instante antes de
+      que React monte ese estado, o para cualquier caso que se escape de la
+      clase. Usa el mismo umbral que `entrada-tactil.ts` (`ANCHO_DE_MANO`,
+      900px) para decidir en JS si se muestran los controles táctiles:
+      `pointer: coarse` (dedo, no ratón) o un ancho menor a 900px (para
+      cubrir una ventana angosta o una tablet con teclado, donde el puntero
+      deja de ser «coarse»). No es idéntico al cálculo de React —ese también
+      mira `innerWidth`, que cambia con el teclado en pantalla o el zoom,
+      cosas que un `@media` no ve—, así que puede sobrar espacio en algún
+      caso raro. Mejor reservar de más que de menos (Constitución VII).
+      Nunca compite con la regla 1: dos clases son más específicas que una,
+      así que en cuanto React monta la clase exacta, esa gana. */
+.mundo--con-controles-tactiles .mundo__oferta {
+  margin-block-end: calc(8rem + var(--espacio-2));
+}
+
+@media (max-width: 30rem) {
+  .mundo--con-controles-tactiles .mundo__oferta {
+    margin-block-end: calc(6.5rem + var(--espacio-1));
+  }
+}
+
+@media (pointer: coarse), (max-width: 900px) {
+  .mundo__oferta {
+    margin-block-end: calc(8rem + var(--espacio-2));
+  }
+}
+
+/* No se anida dentro del `@media` de arriba a propósito: anidar `@media`
+   dentro de otro `@media` es sintaxis del módulo de CSS Nesting, de soporte
+   reciente, y este proyecto apunta a hardware de aula viejo. Un bloque
+   plano y posterior en la hoja de estilos logra lo mismo por cascada: todo
+   ancho <= 30rem ya cumple `max-width: 900px` de la regla anterior, así que
+   las dos coinciden ahí y gana esta por venir después en el documento con
+   la misma especificidad (una sola clase). */
+@media (max-width: 30rem) {
+  .mundo__oferta {
+    margin-block-end: calc(6.5rem + var(--espacio-1));
+  }
+}
+
 /* Arriba a la izquierda, bajo el distintivo, y no en el centro de abajo.
    Estaba en medio de la pantalla y tapaba justo lo que hay que mirar: el
    mundo. Sigue estando siempre —es la ruta 2D que exige AC-8, y quien no
