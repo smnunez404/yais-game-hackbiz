@@ -19,9 +19,12 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 
 import {
   VELOCIDAD_DE_ORBITA,
+  VELOCIDAD_DE_SEGUIMIENTO_DE_MARCHA,
   direccionRelativaALaCamara,
   giroDeTeclas,
+  girarYawHacia,
   normalizarAngulo,
+  yawDetrasDeLaMarcha,
 } from "./camara";
 import { dentroDelMundo, direccionDeTeclas, type ComandoDeJugador } from "./control-del-jugador";
 import type { EntradaTactil } from "./entrada-tactil";
@@ -75,12 +78,19 @@ interface OpcionesDeControl {
    * desde el bucle, nunca por render: ver `entrada-tactil.ts`.
    */
   readonly entradaTactil?: { readonly current: EntradaTactil } | undefined;
+  /**
+   * Con esta preferencia activa, la cámara no se reacomoda sola detrás de
+   * quien camina: solo gira si alguien lo pide con Q/E, un botón o un
+   * arrastre (AC-7; ver `VELOCIDAD_DE_SEGUIMIENTO_DE_MARCHA` en `camara.ts`).
+   */
+  readonly menosMovimiento?: boolean | undefined;
 }
 
 export function useControlDelJugador({
   alRecibirOrden,
   alCambiarGiro,
   entradaTactil,
+  menosMovimiento = false,
 }: OpcionesDeControl): ControlDelJugador {
   const comando = useRef<ComandoDeJugador | null>(null);
   const yaw = useRef(0);
@@ -165,8 +175,25 @@ export function useControlDelJugador({
       // dirección, y girar la cámara no lo mueve.
       const { x, z } = direccionRelativaALaCamara(cruda, yaw.current);
       comando.current = { tipo: "direccion", x, z };
+
+      /* La cámara se acomoda sola detrás de hacia dónde se está caminando
+         (`yawDetrasDeLaMarcha`, el mismo ángulo al que gira el personaje en
+         `useCharacterWalk.ts`), pero solo cuando nadie la está girando a
+         propósito: ni este mismo cuadro con Q/E o un botón (`giroPedido`),
+         ni con un arrastre en curso (`gesto.current`). Sin esa comprobación,
+         el ajuste automático pelearía contra el giro que alguien acaba de
+         pedir. Con `menosMovimiento` no se ajusta nunca: es un giro de
+         cámara por su cuenta, justo lo que AC-7 vigila más de cerca. */
+      if (giroPedido === 0 && !gesto.current && !menosMovimiento) {
+        const anguloDeMarcha = Math.atan2(x, z);
+        yaw.current = girarYawHacia(
+          yaw.current,
+          yawDetrasDeLaMarcha(anguloDeMarcha),
+          VELOCIDAD_DE_SEGUIMIENTO_DE_MARCHA * delta,
+        );
+      }
     },
-    [],
+    [menosMovimiento],
   );
 
   const irA = useCallback(

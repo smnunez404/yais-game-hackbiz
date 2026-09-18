@@ -45,15 +45,23 @@ const DEST_ROOT = join(ROOT, "app", "public", "assets");
 
 // Presupuesto de bytes del subconjunto que se sirve al aula (Constitución VI:
 // «un solo dispositivo proyectado, sin instalar nada, con poco ancho de banda y
-// con el hardware que la escuela ya tiene»). El presupuesto deja poco margen a
-// propósito: pasarse debe ser una decisión consciente, no un descuido que se
-// descubre en el aula. Medido, no estimado: lo calcula este mismo script en
-// cada corrida.
+// con el hardware que la escuela ya tiene»). Medido, no estimado: lo calcula
+// este mismo script en cada corrida. Pasarse sigue siendo una decisión
+// consciente, no un descuido que se descubre en el aula: por eso el script
+// sigue fallando si el total supera el número de abajo, no lo sube solo.
 //
-// No se ha movido para meter a Luna, Clara y Beto, ni para meter el kit
-// completo del mundo y de props: todo entra dentro del mismo techo de 25 MiB
-// porque los GLB pasaron a variantes v002.
-const PRESUPUESTO_BYTES = 25 * 1024 * 1024;
+// Subido de 25 a 80 MiB por instrucción explícita: se pidió seguir
+// incorporando más contenido y arte sin que el techo de 25 frenara cada
+// añadido, con ancho de banda de sobra para la sesión de desarrollo actual.
+// Esto NO revierte la optimización v001→v002 de los personajes (Idle 5
+// clips, sin perder un triángulo, −46 %): esa sigue sirviendo porque es
+// gratis en calidad, no un recorte. Lo que este número relaja es el TECHO
+// para lo que se añada después (más islas, más props, episodios 3 y 4), no
+// una orden de engordar lo que ya está optimizado. Antes de repetir esta
+// subida, medir tiempo de carga real en un aula con la conexión que de
+// verdad tenga: "no hay problema con Internet" describe esta sesión, no la
+// escuela donde se va a usar el juego (Constitución VI y IX).
+const PRESUPUESTO_BYTES = 80 * 1024 * 1024;
 
 // Manifiesto de la variante servida (v002) y de la fuente de arte (v001).
 // El primero da el sha256 del archivo que se copia; el segundo es contra quien

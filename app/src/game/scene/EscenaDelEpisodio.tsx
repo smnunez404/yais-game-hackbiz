@@ -28,7 +28,15 @@ interface EscenaDelEpisodioProps {
 export function EscenaDelEpisodio({ vista, estado, alRetirarse }: EscenaDelEpisodioProps) {
   const escena = useMemo(() => estadoDeEscenaDesde(vista, estado), [vista, estado]);
 
-  if (escena.personajes.length === 0) return null;
-
+  /* Antes, un nodo sin nadie en escena (`personajes.length === 0`) desmontaba
+     este componente entero: `LienzoDeEscena` con él, y con ella el `<Canvas>`,
+     el mixer de animación de cada personaje y su posición. Al volver el
+     siguiente nodo con reparto, todo se recreaba de cero y cada personaje
+     entraba "caminando desde el sendero" otra vez, aunque la escena de
+     verdad no había cambiado (`sceneId` seguía igual). Eso es justo el
+     reporte: "los personajes desaparecen de golpe o vuelven a aparecer".
+     Ahora el lienzo se queda montado y sencillamente no dibuja a nadie ese
+     cuadro; solo se retira si de verdad no hay WebGL o la escena se rompe
+     (`LienzoDeEscena` decide eso). */
   return <LienzoDeEscena escena={escena} alRetirarse={alRetirarse} />;
 }

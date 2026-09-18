@@ -336,6 +336,26 @@
     var(--color-mar) 54%,
     var(--color-mar) 100%
   );
+  /* El mundo y el episodio son dos lienzos distintos (`EscenaLibre` y
+     `EscenaDelEpisodio` montan cada uno el suyo): entrar o salir de un
+     episodio desmonta uno y monta el otro, con personajes en sitios y con
+     una cámara en un ángulo distintos. Sin nada más, eso se ve como que el
+     mundo entero desaparece y vuelve a aparecer de golpe —justo lo que se
+     reportó—. Esto no lo arregla del todo (seguir siendo el mismo lienzo de
+     principio a fin sería el arreglo completo, y es un cambio más grande que
+     no se hizo aquí); funde la entrada para que la transición se lea como un
+     cambio de escena, no como un corte. AC-7: queda anulado por completo por
+     la regla de `prefers-reduced-motion` de arriba en este archivo. */
+  animation: escena-aparece 0.35s ease-out;
+}
+
+@keyframes escena-aparece {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Los paneles se posicionan explícitamente para quedar por encima del mundo.

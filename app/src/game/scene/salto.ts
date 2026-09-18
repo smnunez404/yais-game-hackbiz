@@ -19,11 +19,18 @@ import { PUNTO_DE_PARTIDA, esCaminable } from "./mundo";
  * Gravedad del salto, en unidades por segundo al cuadrado.
  *
  * Con VELOCIDAD = 1.6 u/s (`useCharacterWalk.ts`) y estas constantes:
- *  - duración total del salto: 2 * IMPULSO / GRAVEDAD = 0.5 s
- *  - altura máxima: IMPULSO² / (2 * GRAVEDAD) = 0.5 u
- *  - distancia horizontal cruzable saltando: 1.6 u/s * 0.5 s = 0.8 u
+ *  - duración total del salto: 2 * IMPULSO / GRAVEDAD = 1.0 s
+ *  - altura máxima: IMPULSO² / (2 * GRAVEDAD) = 1.25 u
+ *  - distancia horizontal cruzable saltando: 1.6 u/s * 1.0 s = 1.6 u
  *
- * 0.8 u alcanza para saltar un hueco decorativo (una grieta, un escalón de
+ * (Estos tres números se corrigieron para que coincidan con las constantes de
+ * abajo: la nota de "subido de 4 a 5..." los había cambiado sin actualizar
+ * este bloque, así que decían 0.5 s / 0.5 u / 0.8 u, los valores de ANTES del
+ * ajuste. Con una altura máxima real de 1.25 u el salto no es pequeño; si
+ * cuesta verlo, la cámara era la culpable — ver el comentario de
+ * `ultimoSueloConocido` en `GameCanvas.tsx`.)
+ *
+ * 1.6 u alcanza para saltar un hueco decorativo (una grieta, un escalón de
  * roca) pero no para sustituir un puente: los puentes siguen siendo el modo
  * normal de cruzar entre islas. El salto es para que el mundo se sienta
  * jugable al tacto, no un atajo que rompa el recorrido diseñado en

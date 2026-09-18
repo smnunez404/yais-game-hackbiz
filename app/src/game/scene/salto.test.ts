@@ -230,3 +230,34 @@ describe("seguirAlSuelo", () => {
     expect(seguirAlSuelo(0, 1, -5).asentado).toBe(false);
   });
 });
+
+describe("el salto no depende de la dirección en la que se camina", () => {
+  // Se reportó que "solo funciona caminando hacia atrás". La física de aquí
+  // no recibe ninguna dirección: `iniciarSalto`/`avanzarSalto`/`alturaDelSalto`
+  // solo ven tiempo transcurrido. Quien decide si el personaje avanza en
+  // x/z mientras está en el aire es `useCharacterWalk.ts`, y lo hace con el
+  // mismo `orden.x`/`orden.z` de siempre, sin mirar la fase del salto salvo
+  // para no recortar contra el suelo. Este test deja registrado, a nivel del
+  // módulo puro, que la altura del salto es una función de una sola variable
+  // (el tiempo) y no puede depender de hacia dónde se camina, aunque alguien
+  // vuelva a tocar este archivo más adelante.
+  it("la altura en cada instante es la misma sin importar qué más esté pasando", () => {
+    const trayectoria: number[] = [];
+    let estado = iniciarSalto(ESTADO_DE_SALTO_INICIAL);
+    const paso = DURACION_DEL_SALTO / 20;
+    for (let i = 0; i < 20; i += 1) {
+      trayectoria.push(alturaDelSalto(estado));
+      estado = avanzarSalto(estado, paso);
+    }
+
+    // Repetirlo no cambia nada: no hay estado oculto ni aleatoriedad.
+    let otraVez = iniciarSalto(ESTADO_DE_SALTO_INICIAL);
+    for (let i = 0; i < 20; i += 1) {
+      expect(alturaDelSalto(otraVez)).toBe(trayectoria[i]);
+      otraVez = avanzarSalto(otraVez, paso);
+    }
+
+    // Sube y baja de verdad: no es un salto imperceptible.
+    expect(Math.max(...trayectoria)).toBeGreaterThan(0.5);
+  });
+});

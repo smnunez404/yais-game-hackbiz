@@ -39,6 +39,22 @@ export const ALTURA_DE_MIRA = 0.15;
 /** Radianes por segundo al girar la cámara con el teclado. */
 export const VELOCIDAD_DE_ORBITA = 1.8;
 
+/**
+ * Radianes por segundo a los que la cámara se acomoda sola detrás de hacia
+ * dónde se está caminando, cuando nadie la está girando a mano.
+ *
+ * Mucho más lenta que `VELOCIDAD_DE_ORBITA`: esto no es un giro que se pida,
+ * es una corrección de fondo para que un rato caminando en diagonal (la
+ * entrada normal de un joystick, que casi nunca da exactamente 90°) no deje
+ * la cámara mirando cada vez más de lado sin que nadie la haya movido. Se
+ * reportó como "tengo que estar moviendo con los dedos el ángulo, no
+ * debería ocurrir eso": el personaje ya gira para mirar hacia donde camina
+ * en cualquier ángulo (`useCharacterWalk.ts`); la cámara, hasta ahora, se
+ * quedaba fija donde el último Q/E/arrastre la hubiera dejado, y las dos
+ * cosas se iban separando.
+ */
+export const VELOCIDAD_DE_SEGUIMIENTO_DE_MARCHA = 1.4;
+
 /** Cuánto de la distancia pendiente recorre la cámara por segundo. */
 export const SUAVIDAD_DE_CAMARA = 3.5;
 
@@ -117,4 +133,29 @@ export function direccionRelativaALaCamara(
     x: entrada.x * coseno + entrada.z * seno,
     z: -entrada.x * seno + entrada.z * coseno,
   };
+}
+
+/**
+ * El ángulo de cámara (`yaw`) que deja la cámara justo detrás de un
+ * personaje que camina hacia `anguloDeMarcha` — el mismo ángulo que
+ * `useCharacterWalk.ts` usa para girar el `Group` (`Math.atan2(orden.x,
+ * orden.z)`). Es la inversa de esa relación: con `yaw = 0` un personaje que
+ * camina de frente (entrada `{0,-1}`) queda mirando a `π` (ver el test), así
+ * que "detrás de la marcha" es `anguloDeMarcha + π`.
+ */
+export function yawDetrasDeLaMarcha(anguloDeMarcha: number): number {
+  return normalizarAngulo(anguloDeMarcha + Math.PI);
+}
+
+/**
+ * Acerca `actual` a `objetivo` por el camino corto del círculo, sin pasarse
+ * de `maximoPorCuadro`. Es la misma idea que `girarHacia` de
+ * `useCharacterWalk.ts` (que gira el personaje); esta gira la cámara y vive
+ * aquí, en el módulo puro y probado de la cámara, para no importar entre los
+ * dos archivos de escena solo por una función de diez líneas.
+ */
+export function girarYawHacia(actual: number, objetivo: number, maximoPorCuadro: number): number {
+  const diferencia = normalizarAngulo(objetivo - actual);
+  if (Math.abs(diferencia) <= Math.abs(maximoPorCuadro)) return normalizarAngulo(objetivo);
+  return normalizarAngulo(actual + Math.sign(diferencia) * Math.abs(maximoPorCuadro));
 }

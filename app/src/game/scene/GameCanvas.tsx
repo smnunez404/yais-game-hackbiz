@@ -37,7 +37,7 @@ import { Character } from "./Character";
 import { SenalDeMision } from "./SenalDeMision";
 import type { EstadoDeEscena } from "./estado-de-escena";
 import { IslandScene } from "./IslandScene";
-import { PUNTO_DE_PARTIDA } from "./mundo";
+import { alturaDelSuelo, PUNTO_DE_PARTIDA } from "./mundo";
 import { destinoDe } from "./posiciones";
 import { useControlDelJugador } from "./useControlDelJugador";
 
@@ -150,19 +150,44 @@ function CamaraQueSigue({
   // encendido: cuando llega, deja de pedirlos (Constitución VI).
   const pedirOtroCuadro = useThree((estado) => estado.invalidate);
 
+  /**
+   * Suelo bajo el personaje, para la altura de la cámara — no la `y` real del
+   * `Group`, que durante un salto sube y baja con él.
+   *
+   * Antes esta función usaba `seguido.position.y` directo, así que la cámara
+   * perseguía el salto entero: subía casi al mismo ritmo que el personaje
+   * (`SUAVIDAD_DE_CAMARA` la acerca un ~35% de lo que falta por cuadro a 60
+   * fps, y el salto dura 1 s) y el salto se veía como casi nada, un pequeño
+   * temblor en vez de un salto — el reporte de que "no se nota" o "no
+   * funciona" tenía razón, y no era un problema de si el salto ocurría (si
+   * ocurre: la física en `salto.ts` no distingue direcciones ni depende de
+   * caminar) sino de que la cámara lo tapaba.
+   *
+   * Se guarda el último suelo real conocido para cuando el personaje está en
+   * el aire sobre agua o un hueco entre islas, donde `alturaDelSuelo` no
+   * tiene nada que devolver: la cámara no puede quedarse sin altura solo
+   * porque está cruzando un vano saltando.
+   */
+  const ultimoSueloConocido = useRef(0);
+
   useFrame(({ camera }, delta) => {
     avanzarCuadro(delta);
 
     const seguido = objetivo.current;
     if (!seguido) return;
 
+    const sueloAqui = alturaDelSuelo(seguido.position.x, seguido.position.z);
+    if (sueloAqui !== null) ultimoSueloConocido.current = sueloAqui;
+
     // La altura del personaje entra en el cálculo: el mundo tiene islas a
     // distintos niveles y una cámara a altura fija acabaría a la altura de
-    // los pies —o bajo el suelo— en cuanto se sube a una isla alta.
+    // los pies —o bajo el suelo— en cuanto se sube a una isla alta. Pero es
+    // la altura del SUELO, no la del personaje en este instante: ver el
+    // comentario de `ultimoSueloConocido` arriba.
     const [destinoX, destinoY, destinoZ] = posicionDeCamara(
       { x: seguido.position.x, z: seguido.position.z },
       yaw.current,
-      seguido.position.y,
+      ultimoSueloConocido.current,
     );
 
     if (menosMovimiento) {
@@ -398,6 +423,7 @@ export default function GameCanvas({
     alRecibirOrden,
     alCambiarGiro,
     entradaTactil,
+    menosMovimiento,
   });
 
   useEffect(() => {

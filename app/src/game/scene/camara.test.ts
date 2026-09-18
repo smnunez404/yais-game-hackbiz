@@ -12,8 +12,10 @@ import {
   direccionRelativaALaCamara,
   giroDeTecla,
   giroDeTeclas,
+  girarYawHacia,
   normalizarAngulo,
   posicionDeCamara,
+  yawDetrasDeLaMarcha,
 } from "./camara";
 
 describe("giroDeTecla", () => {
@@ -120,5 +122,47 @@ describe("normalizarAngulo", () => {
     expect(normalizarAngulo(0)).toBeCloseTo(0, 6);
     expect(normalizarAngulo(Math.PI * 2 + 0.5)).toBeCloseTo(0.5, 6);
     expect(Math.abs(normalizarAngulo(Math.PI * 3))).toBeCloseTo(Math.PI, 6);
+  });
+});
+
+describe("yawDetrasDeLaMarcha", () => {
+  it("con yaw=0, caminar de frente deja al personaje mirando a π: la relación inversa da yaw=0", () => {
+    const adelante = { x: 0, z: -1 };
+    const orden = direccionRelativaALaCamara(adelante, 0);
+    const anguloDeMarcha = Math.atan2(orden.x, orden.z);
+
+    expect(Math.abs(anguloDeMarcha)).toBeCloseTo(Math.PI, 6);
+    expect(yawDetrasDeLaMarcha(anguloDeMarcha)).toBeCloseTo(0, 6);
+  });
+
+  it("es la inversa exacta para cualquier yaw: caminar de frente con ese yaw da de vuelta el mismo yaw", () => {
+    const adelante = { x: 0, z: -1 };
+    for (const yaw of [0, 0.7, -1.3, 2.9, -Math.PI + 0.01]) {
+      const orden = direccionRelativaALaCamara(adelante, yaw);
+      const anguloDeMarcha = Math.atan2(orden.x, orden.z);
+      expect(normalizarAngulo(yawDetrasDeLaMarcha(anguloDeMarcha) - yaw)).toBeCloseTo(0, 5);
+    }
+  });
+});
+
+describe("girarYawHacia", () => {
+  it("llega de un salto si el objetivo está a menos del máximo por cuadro", () => {
+    expect(girarYawHacia(0, 0.1, 0.5)).toBeCloseTo(0.1, 6);
+  });
+
+  it("se detiene en el máximo por cuadro si el objetivo está más lejos", () => {
+    expect(girarYawHacia(0, 2, 0.3)).toBeCloseTo(0.3, 6);
+    expect(girarYawHacia(0, -2, 0.3)).toBeCloseTo(-0.3, 6);
+  });
+
+  it("toma el camino corto del círculo, no el largo", () => {
+    // De 3.0 a -3.0 el camino corto cruza π, no vuelve por 0.
+    const resultado = girarYawHacia(3.0, -3.0, 10);
+    expect(normalizarAngulo(resultado)).toBeCloseTo(normalizarAngulo(-3.0), 5);
+  });
+
+  it("no lanza con ángulos absurdos", () => {
+    expect(() => girarYawHacia(Number.NaN, 0, 0.1)).not.toThrow();
+    expect(() => girarYawHacia(0, 0, -1)).not.toThrow();
   });
 });
