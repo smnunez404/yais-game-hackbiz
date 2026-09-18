@@ -1,0 +1,18 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Binarios de arte: nunca normalizar saltos de línea ni intentar fusionarlos.
+*.glb binary
+*.gltf binary
+*.blend binary
+*.blend1 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ogg binary
+*.mp3 binary
+*.wav binary
+
+# El lockfile se versiona pero no ensucia los diffs de revisión.
+package-lock.json linguist-generated=true
