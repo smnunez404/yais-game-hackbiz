@@ -1,7 +1,15 @@
 # Despliegue en Vercel
 
-Estado: **investigado y configurado, no desplegado**. Nadie ha ejecutado `vercel deploy`
-desde este repositorio. Este documento describe lo que haría falta y los riesgos reales.
+Estado: **desplegado**. El proyecto `isla-de-los-acuerdos` (`prj_HKVHPg1VIfAB43wbatmrm9hiJfWj`,
+equipo `sm-nunez404s-projects`) está enlazado a este repositorio en GitHub por
+la integración de Git de Vercel, no por `vercel deploy` desde la CLI. La rama
+de producción es `main`; cada push a `main` dispara un build nuevo. El resto de
+este documento sigue describiendo la configuración y los riesgos reales.
+
+Nota sobre el enlace: la herramienta de creación del proyecto rechazó el ID de
+equipo (`team_...`) con un 403 de alcance OAuth y sólo aceptó el **slug**
+(`smnunez404`) como `teamId`. Si hay que recrear o repetir esto por MCP, usar
+el slug.
 
 Fuentes consultadas (septiembre de 2026):
 
