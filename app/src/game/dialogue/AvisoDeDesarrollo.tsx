@@ -31,7 +31,14 @@ export function AvisoDeDesarrollo({ titulo, diagnosticos, alSaltar }: AvisoDeDes
 
   return (
     <section className="aviso-desarrollo" aria-labelledby="aviso-desarrollo-titulo" role="note">
-      <p className="aviso-desarrollo__etiqueta">{TEXTOS_UI.desarrollo.etiqueta}</p>
+      {/* La etiqueta describe las herramientas de alrededor, que fuera de
+          desarrollo no existen: proyectarla en un aula sería jerga interna
+          en pantalla (revisión de a11y-perf-reviewer). El título sí se queda:
+          es un aviso técnico y decir en su lugar una frase del mundo del
+          juego sería contenido infantil escrito en código. */}
+      {enDesarrollo ? (
+        <p className="aviso-desarrollo__etiqueta">{TEXTOS_UI.desarrollo.etiqueta}</p>
+      ) : null}
 
       <h2 className="aviso-desarrollo__titulo" id="aviso-desarrollo-titulo">
         {titulo}

@@ -53,18 +53,28 @@
 
 /* Las opciones de decisión ocupan toda la fila y alinean icono y texto a la
    izquierda: se leen como una lista, no como una botonera de colores.
-   Contraste --color-texto sobre --color-superficie: 16.20:1. */
+
+   El borde se queda en --color-acento también en reposo. La primera versión
+   usaba --color-borde y la revisión de a11y-perf-reviewer lo midió: botón
+   blanco sobre panel blanco separados por un borde de 1.50:1, por debajo del
+   mínimo de 3:1 que WCAG 1.4.11 pide para el límite de un control. Un niño de
+   seis años tiene que reconocer esa fila como algo que se pulsa sin que un
+   adulto se lo diga.
+     --color-texto  sobre --color-superficie (texto):     16.20:1
+     --color-acento sobre --color-superficie (borde):      7.80:1
+   El estado de hover ya no cambia el borde —no quedaría margen de cambio—,
+   sino el fondo, que mantiene 14.50:1 con el texto. */
 .boton--opcion {
   inline-size: 100%;
   justify-content: flex-start;
   background-color: var(--color-superficie);
-  border-color: var(--color-borde);
+  border-color: var(--color-acento);
   color: var(--color-texto);
   text-align: start;
 }
 
 .boton--opcion:hover {
-  border-color: var(--color-acento);
+  background-color: var(--color-fondo);
 }
 
 /* --- Pantalla de inicio ------------------------------------------------- */

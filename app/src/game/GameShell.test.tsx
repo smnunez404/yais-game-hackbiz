@@ -149,6 +149,16 @@ describe("GameShell — el saludo de Capi", () => {
     expect(within(decision).getByText(preguntaDelGuion)).toBeVisible();
   });
 
+  it("la pregunta es también el encabezado de la pantalla de decisión", async () => {
+    const usuario = await empezarEn(SALUDO.escena);
+    await avanzarHastaLaDecision(usuario);
+
+    // Quien navega por encabezados con lector de pantalla tiene que poder
+    // saltar al tramo de decisiones, no solo al inicio y al cierre.
+    const preguntaDelGuion = textoDeLinea(SALUDO.escena, SALUDO.pregunta);
+    expect(screen.getByRole("heading", { level: 2, name: preguntaDelGuion })).toBeVisible();
+  });
+
   it("oculta la opción solo para 9-12 en el modo 6-8 (AC-3)", async () => {
     const usuario = await empezarEn(SALUDO.escena, "6-8");
     await avanzarHastaLaDecision(usuario);

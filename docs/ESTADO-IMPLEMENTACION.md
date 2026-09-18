@@ -170,10 +170,45 @@ y llegar al cierre con el pie de debrief para la persona adulta.
   `sessionStorage` y las cookies quedan vacías, también a mitad de episodio.
 - Cero peticiones fuera de `localhost`. El poster de Capi se sirve local.
 - A 375 px la retícula pasa a una columna, sin desbordes.
-- Bundle: 349 kB (104 kB gzip) frente a los 191 kB (60 kB) de solo React. La
-  diferencia es `zod` más el JSON del episodio. Medido, no optimizado: la
-  alternativa evidente —validar en build y publicar el JSON ya validado— se
-  evalúa cuando haya una medida en el hardware real del aula.
+- Bundle: 349 kB (104 kB gzip) frente a los 191 kB (60 kB) de solo React, en un
+  único chunk sin code-splitting. Desglose medido por `a11y-perf-reviewer`:
+  `zod` completo 110 kB (27 kB gzip) y el JSON del episodio 42 kB (9 kB gzip).
+  Con `zod/mini` el validador baja a 19 kB (5.5 kB gzip); validarlo en build y
+  publicar el JSON ya validado lo quitaría del navegador por completo. Medido,
+  no optimizado todavía.
+
+**Revisión de accesibilidad y rendimiento (a11y-perf-reviewer)**
+
+Corregido aquí:
+
+- Bloqueante de contraste: el borde en reposo de una opción daba 1.50:1 contra
+  el panel blanco que la contiene (mínimo 3:1 para el límite de un control,
+  WCAG 1.4.11). Ahora usa `--color-acento`, 7.80:1, y el hover cambia el fondo
+  en vez del borde.
+- Al quitar el rótulo inventado de las decisiones, la pantalla se quedó sin
+  ningún encabezado y quien navega con la tecla H perdía el tramo central del
+  episodio. La pregunta del guion es ahora además el `h2`: se marca el texto
+  que ya estaba, sin escribir texto nuevo.
+- La etiqueta «Solo desarrollo» del aviso de nodo sin interfaz ya no se
+  renderiza fuera de desarrollo: proyectarla en un aula sería jerga interna en
+  pantalla.
+
+Pendiente, medido pero no resuelto:
+
+- Los retratos pesan 1.3 MB entre los dos y se muestran a 128 px:
+  `capi/poster.png` es 768×864 (820 kB) y `tomi/poster.png` 640×768 (540 kB).
+  Reexportarlos a ~320 px ahorra más que todo el aumento de JS, pero toca la
+  tubería de assets aprobada y va en su propia tarea.
+- Riesgo verificable y no confirmado: en la primera línea de cada escena el
+  foco se mueve al botón antes de que la región `aria-live` se llene, así que
+  un lector de pantalla podría decir «Continuar, botón» antes que la línea del
+  personaje. Hace falta NVDA/JAWS/VoiceOver reales; jsdom no simula colas de
+  voz.
+- Cuando entre Three.js en T-001-06 debe ir en un chunk aparte cargado bajo
+  demanda, o el fallback 2D pagará su peso aunque el proyector nunca vea el
+  Canvas.
+- Sin medir todavía: 44×44 en píxeles reales, zoom de solo texto al 200 %,
+  legibilidad proyectada y tiempo de carga en la conexión real de una escuela.
 
 **Lo que no hace y hay que decidir**
 

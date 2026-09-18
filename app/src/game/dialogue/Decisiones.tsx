@@ -53,9 +53,14 @@ export function Decisiones({ vista, alElegir }: DecisionesProps) {
       {pregunta ? (
         <div className="decisiones__pregunta">
           <p className="dialogo__hablante">{pregunta.speakerName}</p>
-          <p className="dialogo__texto" id={idPregunta}>
+          {/* La pregunta del guion es además el encabezado de la pantalla.
+              Al quitar el rótulo inventado, la decisión se quedó sin ningún
+              encabezado y quien navega con la tecla H perdía el tramo central
+              del episodio (revisión de a11y-perf-reviewer). Se marca como
+              `h2` el texto que ya estaba, sin escribir texto nuevo. */}
+          <h2 className="dialogo__texto" id={idPregunta}>
             {pregunta.text}
-          </p>
+          </h2>
         </div>
       ) : null}
 
