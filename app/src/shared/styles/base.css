@@ -9,10 +9,12 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
-  padding: var(--espacio-3);
-  background-color: var(--color-fondo);
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #0f172a;
   color: var(--color-texto);
   font-family: var(--fuente-familia);
   font-size: var(--fuente-tamano-cuerpo);

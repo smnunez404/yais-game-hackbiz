@@ -16,31 +16,42 @@ export const MaterialsView: React.FC = () => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}>
       <div>
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "#f8fafc", margin: "0 0 0.25rem 0" }}>
+        <h1
+          style={{
+            fontSize: "clamp(1.25rem, 4vw, 1.75rem)",
+            fontWeight: 700,
+            color: "#f8fafc",
+            margin: "0 0 0.375rem 0",
+            lineHeight: 1.25,
+          }}
+        >
           📂 Centro de Materiales y Guías Docentes
         </h1>
-        <p style={{ color: "#94a3b8", margin: 0, fontSize: "0.9375rem" }}>
+        <p style={{ color: "#94a3b8", margin: 0, fontSize: "0.875rem", lineHeight: 1.4 }}>
           Descarga manuales, recursos para el aula y protocolos en formato PDF e imprimibles.
         </p>
       </div>
 
-      {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+      {/* Filter Tabs Segmented */}
+      <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
         {categorias.map((cat) => (
           <button
             key={cat}
             onClick={() => setCategoriaFiltro(cat)}
             style={{
-              padding: "0.5rem 1rem",
+              padding: "0.5rem 0.75rem",
               borderRadius: "0.5rem",
-              fontSize: "0.875rem",
+              fontSize: "0.8125rem",
               fontWeight: 600,
               cursor: "pointer",
               backgroundColor: categoriaFiltro === cat ? "#0284c7" : "#1e293b",
               color: categoriaFiltro === cat ? "#ffffff" : "#94a3b8",
               border: "1px solid #334155",
+              minHeight: "36px",
+              flex: "1 1 auto",
+              textAlign: "center",
             }}
           >
             {cat}
@@ -48,8 +59,8 @@ export const MaterialsView: React.FC = () => {
         ))}
       </div>
 
-      {/* Materials List */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
+      {/* Materials Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
         {materialesFiltrados.map((mat) => (
           <div
             key={mat.id}
@@ -79,13 +90,21 @@ export const MaterialsView: React.FC = () => {
               >
                 {mat.categoria}
               </div>
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 700, color: "#f8fafc", margin: "0 0 0.5rem 0" }}>
+              <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "#f8fafc", margin: "0 0 0.5rem 0", lineHeight: 1.3 }}>
                 {mat.titulo}
               </h2>
-              <p style={{ fontSize: "0.875rem", color: "#94a3b8", margin: 0 }}>{mat.descripcion}</p>
+              <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0, lineHeight: 1.4 }}>{mat.descripcion}</p>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.75rem", borderTop: "1px solid #334155" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+                paddingTop: "0.75rem",
+                borderTop: "1px solid #334155",
+              }}
+            >
               <span style={{ fontSize: "0.75rem", color: "#cbd5e1" }}>
                 {mat.tipo} • {mat.tamano}
               </span>
@@ -97,10 +116,13 @@ export const MaterialsView: React.FC = () => {
                   color: "#ffffff",
                   border: "none",
                   borderRadius: "0.5rem",
-                  padding: "0.5rem 0.875rem",
+                  padding: "0.5rem",
                   fontSize: "0.8125rem",
                   fontWeight: 600,
                   cursor: "pointer",
+                  width: "100%",
+                  textAlign: "center",
+                  minHeight: "38px",
                 }}
               >
                 Descargar
