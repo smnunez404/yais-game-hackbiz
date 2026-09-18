@@ -50,11 +50,14 @@ export default function GameShell() {
 
   return (
     <main className="shell shell--juego">
-      {/* Encabezado flotante: ocupa lo mínimo para que el mundo se vea, pero
-          el distintivo sigue en pantalla siempre (AC-10). */}
+      {/* Encabezado flotante. Lo único que se ve es el distintivo, que no
+          puede apagarse (AC-10). El título del episodio se queda como `h1`
+          —hace falta para la estructura de encabezados y para quien navega
+          con lector de pantalla— pero no se dibuja: en pantalla era un rótulo
+          permanente que no cambia nunca, ocupando sitio del mundo. */}
       <header className="shell__encabezado shell__encabezado--flotante">
         <DistintivoBorrador />
-        <h1 className="shell__titulo shell__titulo--juego">{titulo}</h1>
+        <h1 className="shell__titulo shell__titulo--juego visualmente-oculto">{titulo}</h1>
       </header>
 
       <EpisodioEnCurso episodio={episodio} ageMode={ageMode} alCambiarEdad={setAgeMode} />

@@ -150,19 +150,34 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
       {/* Barra de quien acompaña. Parar es siempre posible y nunca cuesta
           nada (Constitución V); el rótulo viene del contenido, no de la
           interfaz. El grupo de edad vive aquí porque es decisión del adulto,
-          no del niño, y cambiarlo reinicia el episodio. */}
-      {pausa.alwaysVisible ? (
-        <footer className="episodio__pie barra-adulto">
-          <p className="episodio__pausa-texto">{runtime.texto(pausa.promptLocId)}</p>
+          no del niño, y cambiarlo reinicia el episodio.
 
-          {/* El grupo de edad se toca una vez por sesión: plegado, deja de
-              competir por atención con lo que sí se usa en cada línea. */}
-          <details className="barra-adulto__ajustes">
-            <summary className="objetivo-tactil barra-adulto__resumen">
-              {TEXTOS_UI.adulto.grupoDeEdad}
-            </summary>
-            <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
-          </details>
+          Durante una decisión se queda solo el botón de parar: ahí la pantalla
+          ya está pidiendo al niño que elija entre cinco cosas y los controles
+          del adulto son ruido. Lo que NO se retira es parar, aunque se pidiera
+          quitar la barra entera: el momento de una decisión difícil es
+          justamente cuando hace falta poder irse, y el contenido declara
+          `pause.alwaysVisible: true` (Constitución V). */}
+      {pausa.alwaysVisible ? (
+        <footer
+          className={
+            vista.kind === "choice" ? "episodio__pie barra-adulto barra-adulto--minima" : "episodio__pie barra-adulto"
+          }
+        >
+          {vista.kind === "choice" ? null : (
+            <>
+              <p className="episodio__pausa-texto">{runtime.texto(pausa.promptLocId)}</p>
+
+              {/* El grupo de edad se toca una vez por sesión: plegado, deja de
+                  competir por atención con lo que sí se usa en cada línea. */}
+              <details className="barra-adulto__ajustes">
+                <summary className="objetivo-tactil barra-adulto__resumen">
+                  {TEXTOS_UI.adulto.grupoDeEdad}
+                </summary>
+                <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
+              </details>
+            </>
+          )}
 
           <button
             type="button"
@@ -203,24 +218,30 @@ function SelectorDeEscenaDeDesarrollo({
 }: SelectorDeEscenaProps) {
   return (
     <aside className="herramientas-desarrollo">
-      <p className="herramientas-desarrollo__etiqueta">{TEXTOS_UI.desarrollo.etiqueta}</p>
-      {/* Etiqueta y control como hermanos, no anidados: una `<label>` que
-          envuelve un `<select>` arrastra el texto de las opciones al nombre
-          accesible del control en algunos navegadores. */}
-      <div className="herramientas-desarrollo__campo">
-        <label htmlFor="selector-de-escena">{TEXTOS_UI.desarrollo.selectorDeEscena}</label>
-        <select
-          id="selector-de-escena"
-          value={sceneIdActual}
-          onChange={(evento) => alIrAEscena(evento.target.value)}
-        >
-          {episodio.scenes.map((scene) => (
-            <option key={scene.id} value={scene.id}>
-              {scene.id}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Plegado: en desarrollo hace falta a mano, pero abierto se come una
+          esquina del mundo en cada captura y en cada demo. */}
+      <details>
+        <summary className="herramientas-desarrollo__etiqueta">
+          {TEXTOS_UI.desarrollo.etiqueta}
+        </summary>
+        {/* Etiqueta y control como hermanos, no anidados: una `<label>` que
+            envuelve un `<select>` arrastra el texto de las opciones al nombre
+            accesible del control en algunos navegadores. */}
+        <div className="herramientas-desarrollo__campo">
+          <label htmlFor="selector-de-escena">{TEXTOS_UI.desarrollo.selectorDeEscena}</label>
+          <select
+            id="selector-de-escena"
+            value={sceneIdActual}
+            onChange={(evento) => alIrAEscena(evento.target.value)}
+          >
+            {episodio.scenes.map((scene) => (
+              <option key={scene.id} value={scene.id}>
+                {scene.id}
+              </option>
+            ))}
+          </select>
+        </div>
+      </details>
     </aside>
   );
 }

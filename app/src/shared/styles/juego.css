@@ -207,6 +207,15 @@
   white-space: nowrap;
 }
 
+/* Durante una decisión solo queda parar, alineado a la derecha y sin fondo:
+   deja de leerse como una barra y pasa a ser un botón suelto. */
+.barra-adulto--minima {
+  justify-content: flex-end;
+  padding: 0;
+  background-color: transparent;
+  border-color: transparent;
+}
+
 .barra-adulto__edades {
   display: flex;
   flex-wrap: wrap;
