@@ -6,6 +6,9 @@ verificado, ni se llama producto a un prototipo.
 
 Última actualización: 2026-09-17.
 
+El informe de la verificación de extremo a extremo, con las medidas tomadas y
+las que faltan, vive en [QA-VERTICAL-SLICE.md](./QA-VERTICAL-SLICE.md).
+
 ## Tablero
 
 | Tarea | Estado | Compuerta |
@@ -16,7 +19,7 @@ verificado, ni se llama producto a un prototipo.
 | T-001-04 — Motor puro y persistencia mínima | hecho | `npm run verify` verde |
 | T-001-05 — Experiencia 2D accesible | hecho | `npm run verify` verde |
 | T-001-06 — Escena 3D con Capi y Tomi | hecho | `npm run verify` verde |
-| T-001-07 — Verificación de extremo a extremo | pendiente | — |
+| T-001-07 — Verificación de extremo a extremo | hecho | `npm run verify` verde |
 
 ## T-001-01 — Scaffold y compuerta de calidad
 
