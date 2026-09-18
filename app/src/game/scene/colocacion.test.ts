@@ -4,11 +4,13 @@ import {
   estorbaAlgunaZona,
   puntoLibreMasCercano,
   zonaDeClaro,
+  zonaDeDecorado,
   zonaDePersonajeEsperando,
   zonaDePuente,
   zonaEstorba,
   zonasBaseDelMundo,
   zonasDeBocaDePuente,
+  type Punto,
   type ZonaProhibida,
 } from "./colocacion";
 import type { PuenteDelMundo } from "./mundo";
@@ -88,6 +90,18 @@ describe("zonaDeClaro y zonaDePersonajeEsperando", () => {
   });
 });
 
+describe("zonaDeDecorado", () => {
+  it("marca como ocupado el sitio de una pieza de decorado ya colocada", () => {
+    const zona = zonaDeDecorado({ x: 5, z: -2 }, 0.45);
+    expect(zonaEstorba({ x: 5.1, z: -2.1 }, 0.3, zona)).toBe(true);
+  });
+
+  it("no estorba a un punto lejos de la pieza ya colocada", () => {
+    const zona = zonaDeDecorado({ x: 5, z: -2 }, 0.45);
+    expect(zonaEstorba({ x: 50, z: 50 }, 0.3, zona)).toBe(false);
+  });
+});
+
 describe("estorbaAlgunaZona", () => {
   it("es true si cualquiera de varias zonas estorba", () => {
     const zonas = zonasBaseDelMundo([PUENTE], []);
@@ -127,5 +141,42 @@ describe("puntoLibreMasCercano", () => {
     expect(() =>
       puntoLibreMasCercano({ x: NaN, z: 0 }, 0.3, [zonaDePuente(PUENTE)]),
     ).not.toThrow();
+  });
+
+  it("caso real: dos piezas de decorado deseadas muy cerca no terminan superpuestas si cada una se suma a las zonas de la siguiente", () => {
+    // Reproduce el bug de aula: dos temas de TEMAS_POR_ISLA con ángulos
+    // parecidos (p. ej. un faro y un banco) piden posiciones a menos de
+    // RADIO_DECORATIVO*2 de distancia entre sí. Sin acumular el decorado ya
+    // colocado, `puntoLibreMasCercano` no tiene forma de saberlo y las dos
+    // piezas pueden terminar una encima de la otra.
+    const radioPieza = 0.45;
+    const deseadoA: Punto = { x: 0, z: 0 };
+    const deseadoB: Punto = { x: 0.3, z: 0.2 }; // a ~0.36 de A: dentro de radioPieza*2 (0.9)
+    expect(Math.hypot(deseadoB.x - deseadoA.x, deseadoB.z - deseadoA.z)).toBeLessThan(radioPieza * 2);
+
+    const zonas: ZonaProhibida[] = [];
+
+    const libreA = puntoLibreMasCercano(deseadoA, radioPieza, zonas, { radioMaximo: 3 });
+    zonas.push(zonaDeDecorado(libreA, radioPieza));
+
+    const libreB = puntoLibreMasCercano(deseadoB, radioPieza, zonas, { radioMaximo: 3 });
+
+    const distanciaEntrePiezas = Math.hypot(libreB.x - libreA.x, libreB.z - libreA.z);
+    expect(distanciaEntrePiezas).toBeGreaterThanOrEqual(radioPieza * 2);
+  });
+
+  it("sin acumular el decorado ya colocado, el mismo caso SÍ queda superpuesto (documenta el bug que se corrige)", () => {
+    const radioPieza = 0.45;
+    const deseadoA: Punto = { x: 0, z: 0 };
+    const deseadoB: Punto = { x: 0.3, z: 0.2 };
+    const zonasSinAcumular: ZonaProhibida[] = [];
+
+    // Las dos piezas se calculan contra la MISMA lista de zonas, sin que la
+    // primera se entere de la segunda: es el comportamiento previo al fix.
+    const libreA = puntoLibreMasCercano(deseadoA, radioPieza, zonasSinAcumular, { radioMaximo: 3 });
+    const libreB = puntoLibreMasCercano(deseadoB, radioPieza, zonasSinAcumular, { radioMaximo: 3 });
+
+    const distanciaEntrePiezas = Math.hypot(libreB.x - libreA.x, libreB.z - libreA.z);
+    expect(distanciaEntrePiezas).toBeLessThan(radioPieza * 2);
   });
 });

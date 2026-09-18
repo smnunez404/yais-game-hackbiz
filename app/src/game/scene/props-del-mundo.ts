@@ -27,10 +27,21 @@ export interface PosicionDeProp {
  * banco ya son parte del decorado sin ser interactivos.
  *
  * La posición está elegida a mano para no pisar el resto de piezas de esa
- * isla en `IslandScene.tsx` (faro en [17.8,-2.0], árbol en [15.0,-1.6], banco
- * en [15.2,1.1], sendero en [16.5,1.7]) y para quedar dentro del radio
- * caminable de la isla (2,4 desde su centro): la distancia desde el centro
- * hasta aquí es ~1,77.
+ * isla en `IslandScene.tsx` y para quedar dentro del radio caminable de la
+ * isla (2,4 desde su centro): la distancia desde el centro hasta aquí es
+ * ~1,77.
+ *
+ * Las coordenadas de las otras piezas NO son las de `TEMAS_POR_ISLA` (esas
+ * son ángulo/distancia deseados, antes de `puntoLibreMasCercano`): son la
+ * posición real que produce hoy `decoradoDeIsla` para `isla-acuerdos`,
+ * calculada reproduciendo esa función a mano. Faro (`lighthouse`) en
+ * ~[15.0,-2.0], árbol (`tree_round`) en ~[14.5,1.6], banco (`bench`) en
+ * ~[18.9,1.1]; los cuatro tramos de sendero quedan en ~[17.9,-0.4],
+ * ~[16.5,-1.8], ~[15.1,-0.4] y la esquina en [16.5,-0.4]. Si se mueve algún
+ * ángulo/distancia de `TEMAS_POR_ISLA["isla-acuerdos"]`, o si cambia el radio
+ * caminable de la isla en `mundo.ts`, hay que recalcular esto (no son
+ * coordenadas fijas de por vida) y comprobar de nuevo que la brújula sigue
+ * libre.
  */
 export const POSICION_DE_BRUJULA: PosicionDeProp = {
   clave: "brujula-acuerdos",

@@ -156,6 +156,28 @@ export function zonaDePersonajeEsperando(posicion: readonly [number, number], ra
 }
 
 /**
+ * Dónde ya quedó una pieza de decorado: la siguiente pieza de la misma isla
+ * tiene que apartarse de ella igual que se aparta de un sendero o de un
+ * puente. Sin esto, dos temas cercanos en `TEMAS_POR_ISLA` (p. ej. un faro y
+ * un banco a un ángulo parecido) podían terminar uno encima del otro, porque
+ * nada avisaba de que el primero ya estaba plantado ahí (la queja original
+ * de aula: sillas encimadas con otro objeto).
+ *
+ * Es un caso aparte de `zonaDePersonajeEsperando` aunque la forma sea la misma
+ * (un círculo con radio): esa marca dónde espera alguien del contenido, esta
+ * marca dónde ya se plantó algo del propio decorado, y quien llama a cada una
+ * pasa datos de orígenes distintos (un ancla de personaje vs. el punto ya
+ * resuelto de una pieza).
+ */
+export function zonaDeDecorado(punto: Punto, radio: number): ZonaCircular {
+  return {
+    tipo: "circulo",
+    centro: { x: punto.x, z: punto.z },
+    radio,
+  };
+}
+
+/**
  * Todas las zonas prohibidas del mundo que no dependen de una escena en
  * particular: los puentes (tablero + bocas) y los claros de episodio. Las
  * zonas de personajes se agregan aparte porque solo existen mientras esa

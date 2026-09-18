@@ -11,11 +11,15 @@
 // El decorado (bancos, árboles, senderos) YA NO se planta a coordenadas
 // sueltas: se deriva de los datos del mundo (centro y radio de cada isla,
 // bocas de cada puente) y pasa por `colocacion.ts`, que rechaza cualquier
-// sitio que caiga sobre un sendero, sobre la zona de un puente o sobre un
-// claro de episodio. Antes una silla podía terminar en medio de un puente
-// porque nada comprobaba las dos listas contra la otra; ahora es imposible
-// por construcción: el decorado se coloca DESPUÉS de calcular las zonas
-// prohibidas y se aparta de ellas.
+// sitio que caiga sobre un sendero, sobre la zona de un puente, sobre un
+// claro de episodio o sobre OTRA pieza de decorado ya plantada en esa misma
+// isla. Antes una silla podía terminar en medio de un puente —o encima de
+// otra silla, porque las piezas de una isla nunca se comprobaban entre
+// sí— porque nada comprobaba las listas unas contra otras; ahora es
+// imposible por construcción: el decorado se coloca DESPUÉS de calcular las
+// zonas prohibidas, cada pieza recién puesta se suma a esas zonas antes de
+// calcular la siguiente de la misma isla, y toda pieza se aparta de lo que
+// ya esté ocupado (ver `decoradoDeIsla` más abajo).
 //
 // Sin animación de cámara ni movimiento ambiental: AC-7 se cumple por no
 // tener nada que apagar. Las nubes están quietas a propósito.
@@ -28,6 +32,7 @@ import { WORLD_ASSETS, type WorldAssetId } from "../../shared/assets";
 import { ENCUENTROS_DE_LA_ISLA } from "../../shared/encuentros";
 import {
   puntoLibreMasCercano,
+  zonaDeDecorado,
   zonaDePersonajeEsperando,
   zonasBaseDelMundo,
   type Punto,
@@ -368,19 +373,31 @@ const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
 };
 
 /**
- * El decorado de una isla, ya apartado de senderos, puentes y claros. Cada
- * pieza propuesta en `TEMAS_POR_ISLA` se intenta plantar en su sitio; si
- * cae sobre una zona prohibida, `puntoLibreMasCercano` la mueve al hueco
- * libre más próximo. La posición deseada nunca se descarta en silencio: si
- * el hueco más próximo tampoco existe, se deja donde estaba pedida (ver el
- * comentario de esa función en `colocacion.ts`).
+ * El decorado de una isla, ya apartado de senderos, puentes, claros y del
+ * resto del decorado de la propia isla. Cada pieza propuesta en
+ * `TEMAS_POR_ISLA` se intenta plantar en su sitio, en el orden en que
+ * aparece en esa lista; si cae sobre una zona prohibida, `puntoLibreMasCercano`
+ * la mueve al hueco libre más próximo. La posición deseada nunca se descarta
+ * en silencio: si el hueco más próximo tampoco existe, se deja donde estaba
+ * pedida (ver el comentario de esa función en `colocacion.ts`).
+ *
+ * `zonas` empieza en lo que ya prohibía el resto del mundo (sendero, puentes,
+ * claros, personajes) pero DESPUÉS crece con cada pieza recién colocada
+ * (`zonaDeDecorado`): así la segunda pieza de una isla ya sabe dónde quedó la
+ * primera, la tercera sabe dónde quedaron las dos anteriores, etc. Antes
+ * `zonas` se calculaba una sola vez y nunca se enteraba de lo que la propia
+ * isla ya había plantado, así que dos temas con ángulos parecidos (p. ej. un
+ * faro y un banco) podían terminar uno encima del otro —la queja original de
+ * aula: sillas encimadas con otro objeto—. El acumulador es local a esta
+ * llamada, así que no afecta a ninguna otra isla.
  */
 function decoradoDeIsla(isla: IslaDelMundo, zonasDelMundo: readonly ZonaProhibida[]): readonly Pieza[] {
   const senderos = senderosDeIsla(isla);
-  const zonas = [...zonasDelMundo, ...senderos.map(zonaDeSendero)];
+  const zonas: ZonaProhibida[] = [...zonasDelMundo, ...senderos.map(zonaDeSendero)];
   const temas = TEMAS_POR_ISLA[isla.clave] ?? [];
 
-  const decor = temas.map((tema, indice) => {
+  const decor: Pieza[] = [];
+  temas.forEach((tema, indice) => {
     const deseado: Punto = {
       x: isla.centro[0] + Math.cos(tema.angulo) * isla.radioCaminable * tema.distancia,
       z: isla.centro[1] + Math.sin(tema.angulo) * isla.radioCaminable * tema.distancia,
@@ -388,14 +405,14 @@ function decoradoDeIsla(isla: IslaDelMundo, zonasDelMundo: readonly ZonaProhibid
     const libre = puntoLibreMasCercano(deseado, RADIO_DECORATIVO, zonas, {
       radioMaximo: isla.radioCaminable,
     });
-    const pieza: Pieza = {
+    zonas.push(zonaDeDecorado(libre, RADIO_DECORATIVO));
+    decor.push({
       id: tema.id,
       clave: `${isla.clave}-decor-${indice}`,
       position: [libre.x, isla.altura, libre.z],
       ...(tema.rotationY !== undefined ? { rotationY: tema.rotationY } : {}),
       ...(tema.scale !== undefined ? { scale: tema.scale } : {}),
-    };
-    return pieza;
+    });
   });
 
   return [...senderos, ...decor];
