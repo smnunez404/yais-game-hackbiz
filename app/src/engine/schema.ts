@@ -14,6 +14,7 @@
 
 import { z } from "zod";
 
+import { FLAGS_PERSISTIBLES } from "./progress";
 import {
   ALL_AGE_MODES,
   type AgeMode,
@@ -40,8 +41,12 @@ z.config(z.locales.es());
  * literal a propósito: cualquier otro flag de `progressFlags`, aunque el
  * JSON lo declare con `persist: true`, se reporta como diagnóstico de
  * desarrollo y el runtime lo ignora.
+ *
+ * La lista vive en `progress.ts`, donde además define el tipo que `writeFlag`
+ * acepta; aquí solo se reexporta con el nombre que usa la validación, para
+ * que no existan dos allowlists que puedan separarse.
  */
-export const PERSISTENCE_ALLOWLIST: readonly FlagId[] = ["ep01.completed"];
+export const PERSISTENCE_ALLOWLIST: readonly FlagId[] = FLAGS_PERSISTIBLES;
 
 /* ------------------------------------------------------------------------ */
 /* Escalares y tipos compartidos                                            */

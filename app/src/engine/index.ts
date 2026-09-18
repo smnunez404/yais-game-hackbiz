@@ -6,9 +6,9 @@
 // - Las compuertas que lo verifican son `tsconfig.engine.json`, el bloque
 //   `src/engine/**` de `eslint.config.js` y `npm run check:safety`.
 //
-// `runtime` (navegación por nodos) entra en la segunda mitad de T-001-04;
-// este archivo reexporta lo que ya existe: `types` y `schema` de T-001-03 y
-// `progress` de la primera mitad de T-001-04.
+// Reexporta el motor completo de T-001-03 y T-001-04: `types` y `schema`
+// (contratos y validación del contenido), `progress` (persistencia mínima) y
+// `runtime` (navegación por nodos, edad y variables de sesión).
 
 export type {
   AgeMode,
@@ -91,4 +91,25 @@ export {
 } from "./schema";
 
 export type { AdaptadorDeAlmacenamiento, FlagDePersistencia, ProgressStore } from "./progress";
-export { crearAlmacenamientoEnMemoria, crearProgressStore } from "./progress";
+export {
+  crearAlmacenamientoEnMemoria,
+  crearProgressStore,
+  esFlagDePersistencia,
+  FLAGS_PERSISTIBLES,
+} from "./progress";
+
+export type {
+  ChoiceOptionView,
+  ChoiceView,
+  EndView,
+  ErrorView,
+  LineView,
+  Runtime,
+  RuntimeDiagnostic,
+  RuntimeDiagnosticCode,
+  RuntimeOptions,
+  RuntimeState,
+  RuntimeView,
+  UnimplementedView,
+} from "./runtime";
+export { crearRuntime } from "./runtime";

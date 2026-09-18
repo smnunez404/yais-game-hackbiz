@@ -38,11 +38,27 @@ export interface AdaptadorDeAlmacenamiento {
  * SPEC-001 AC-5 exige que sea exactamente `ep01.completed`: agregar
  * cualquier otro id aquí requiere primero actualizar la spec (ver
  * "Aclaración de implementación, 2026-09-17").
+ *
+ * Es la única fuente de verdad del proyecto: `schema.ts` la reexporta como
+ * `PERSISTENCE_ALLOWLIST` para su diagnóstico y el runtime la consulta con
+ * `esFlagDePersistencia`, así que no existen dos listas que puedan
+ * separarse.
  */
-const FLAGS_PERSISTIBLES = ["ep01.completed"] as const;
+export const FLAGS_PERSISTIBLES = ["ep01.completed"] as const;
 
 /** Tipo derivado de la allowlist: no existe otro valor posible. */
 export type FlagDePersistencia = (typeof FLAGS_PERSISTIBLES)[number];
+
+/**
+ * Guardián de tipo sobre la allowlist. El contenido declara siete flags con
+ * `persist: true` y el runtime (T-001-04) recorre esa lista tal cual viene
+ * del JSON: necesita preguntar, con un `string` cualquiera en la mano, si
+ * ese flag puede llegar a `writeFlag`. Devolver `id is FlagDePersistencia`
+ * hace que el compilador, y no una revisión manual, sostenga la regla.
+ */
+export function esFlagDePersistencia(id: string): id is FlagDePersistencia {
+  return (FLAGS_PERSISTIBLES as readonly string[]).includes(id);
+}
 
 // Prefijo explícito de clave de almacenamiento. No incluye nada que
 // identifique a un niño ni a un aula concreta: el progreso es genérico
