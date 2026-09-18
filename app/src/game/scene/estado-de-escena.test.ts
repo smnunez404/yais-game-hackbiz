@@ -107,11 +107,13 @@ describe("estadoDeEscenaDesde", () => {
     expect(escena.gesto).toEqual({ tipo: "reposo" });
   });
 
-  it("deja la escena en reposo en un nodo sin interfaz y en el cierre", () => {
+  it("deja la escena en reposo mientras se juega un minijuego y en el cierre", () => {
     const runtime = montarEn("s02_brujula");
     avanzarHastaLaDecision(runtime);
 
-    expect(runtime.vista().kind).toBe("unimplemented");
+    // Durante un minijuego los personajes no actúan: la atención está en las
+    // tarjetas, no en el escenario.
+    expect(runtime.vista().kind).toBe("minigame");
     expect(escenaDe(runtime).gesto).toEqual({ tipo: "reposo" });
   });
 

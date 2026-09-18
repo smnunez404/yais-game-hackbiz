@@ -130,6 +130,14 @@ function recorrerEpisodioCompleto(runtime: Runtime, maxPasos = 300): readonly st
       runtime.avanzar();
       continue;
     }
+    if (vista.kind === "minigame") {
+      runtime.terminarMinijuego();
+      continue;
+    }
+    if (vista.kind === "reward") {
+      runtime.terminarRecompensa();
+      continue;
+    }
     if (vista.kind === "unimplemented") {
       runtime.saltarNodoNoImplementado();
       continue;
@@ -255,24 +263,87 @@ describe("crearRuntime — navegación", () => {
     expect(decisionDeOtraEscena.precedingLine?.scene.id).toBe("s05_luna");
   });
 
-  it("presenta los nodos validados que todavía no tienen interfaz como no implementados", () => {
-    const { runtime, diagnosticos } = montar({ startSceneId: "s02_brujula" });
+  it("resuelve la rama de Don Beto en vez de presentarla", () => {
+    const { runtime, diagnosticos } = montar({ ageMode: "9-12", startSceneId: "s06_adultos" });
 
     avanzarHastaParar(runtime);
-    const vista = esperarVista(runtime.vista(), "unimplemented");
+    // `s06_c001`: se saluda sin abrazo, que es la condición de la rama.
+    runtime.elegir("wave");
+    // Una sola línea de respuesta y, justo después, la rama.
+    runtime.avanzar();
 
-    expect(vista.node.id).toBe("s02_m001");
-    expect(vista.nodeType).toBe("minigame");
-    expect(vista.puedeSaltarse).toBe(true);
-    expect(diagnosticos.some((d) => d.code === "nodo-no-implementado")).toBe(true);
+    // La rama no se ve nunca: se cruza y el episodio continúa por donde el
+    // guion dice, en este caso el nodo que solo existe para 9-12.
+    expect(runtime.vista().kind).toBe("line");
+    expect(runtime.estado().nodeId).toBe("s06_n003");
+    expect(diagnosticos.some((d) => d.code === "rama-resuelta")).toBe(true);
   });
 
-  it("la salida de desarrollo cruza el nodo sin interfaz por su continuación", () => {
+  it("en 6-8 la misma rama cae por el camino por defecto", () => {
+    const { runtime } = montar({ ageMode: "6-8", startSceneId: "s06_adultos" });
+
+    avanzarHastaParar(runtime);
+    runtime.elegir("wave");
+    runtime.avanzar();
+
+    // `s06_n003` está marcado solo para 9-12; en 6-8 el episodio sigue por
+    // `s06_n004`, sin pasar por la insistencia.
+    expect(runtime.estado().nodeId).toBe("s06_n004");
+  });
+
+  it("presenta el minijuego con la configuración que declara el contenido", () => {
     const { runtime } = montar({ startSceneId: "s02_brujula" });
 
     avanzarHastaParar(runtime);
-    expect(runtime.saltarNodoNoImplementado()).toBe(true);
+    const vista = esperarVista(runtime.vista(), "minigame");
+
+    expect(vista.node.id).toBe("s02_m001");
+    expect(vista.node.minigameId).toBe("body_compass_practice");
+    // El motor no sabe jugar: entrega la configuración y espera.
+    if (vista.node.minigameId !== "body_compass_practice") return;
+    expect(vista.node.config.cards).toHaveLength(3);
+    expect(vista.node.config.anyAnswerValid).toBe(true);
+  });
+
+  it("al terminar un minijuego continúa por donde dice el contenido", () => {
+    const { runtime } = montar({ startSceneId: "s02_brujula" });
+
+    avanzarHastaParar(runtime);
+    expect(runtime.terminarMinijuego()).toBe(true);
     expect(runtime.estado().nodeId).toBe("s02_n008");
+  });
+
+  it("un minijuego puede terminar en el nodo que su propia configuración señala", () => {
+    // El botón de parar del juego de chocar las manos lleva a `s04_r003`, y
+    // ese destino lo declara el contenido, no la interfaz.
+    const { runtime } = montar({ startSceneId: "s04_tomi" });
+    avanzarHastaParar(runtime);
+    runtime.elegir("ask_first");
+    avanzarHastaParar(runtime);
+    runtime.elegir("wave");
+    avanzarHastaParar(runtime);
+    runtime.elegir("yes");
+
+    expect(runtime.vista().kind).toBe("minigame");
+    expect(runtime.terminarMinijuego("s04_r003")).toBe(true);
+    expect(runtime.estado().nodeId).toBe("s04_r003");
+  });
+
+  it("la recompensa es cosmética: no persiste ninguno de sus flags", () => {
+    const { runtime, almacenamiento, diagnosticos } = montar({
+      startSceneId: "s07_reconstruccion",
+    });
+
+    avanzarHastaParar(runtime);
+    runtime.terminarMinijuego();
+    avanzarHastaParar(runtime);
+    const recompensa = esperarVista(runtime.vista(), "reward");
+
+    expect(recompensa.node.conditionalOnPerformance).toBe(false);
+    expect(almacenamiento.almacen.size).toBe(0);
+    expect(diagnosticos.some((d) => d.code === "flag-ignorado")).toBe(true);
+    expect(runtime.terminarRecompensa()).toBe(true);
+    expect(runtime.estado().nodeId).toBe("s07_n005");
   });
 
   it("el selector de escena de desarrollo cambia de escena y rechaza una inexistente", () => {

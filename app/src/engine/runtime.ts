@@ -23,6 +23,7 @@
 // estado de acierto ni de error y ninguna transición se bloquea por haber
 // pasado antes por ella. Volver a una decisión es una transición más.
 
+import { evaluarCondicion } from "./condiciones";
 import { esFlagDePersistencia } from "./progress";
 import type {
   ErrorView,
@@ -276,6 +277,13 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
       }
       case "end":
         return { kind: "end", scene, node };
+      case "minigame":
+        return { kind: "minigame", scene, node };
+      case "reward":
+        // Los flags de la recompensa pasan por la misma puerta que los demás:
+        // ninguno está en la allowlist, así que se ignoran con diagnóstico.
+        aplicarFlags(node.setFlags, `${rutaDeNodo(scene.id, node.id)}.setFlags`);
+        return { kind: "reward", scene, node };
       default: {
         if (!esNodoNoImplementado(node)) {
           // Solo queda `sceneChange`, que `situarEn` cruza antes de llegar
@@ -354,6 +362,24 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
         entrarAEscena(destino);
         sceneEnCurso = destino;
         idEnCurso = destino.entryNode;
+        continue;
+      }
+
+      if (node.type === "branch") {
+        // Las ramas no se presentan: se resuelven. El guion las usa para que
+        // una escena continúe de otra manera según lo que ya pasó, y eso es
+        // navegación, no una pantalla.
+        const contexto = { ageMode, sessionVars: instantaneaDeSesion() };
+        const acertada = node.conditions.find((regla) => evaluarCondicion(regla.if, contexto));
+        const destino = acertada?.next ?? node.else;
+        diagnosticar({
+          code: "rama-resuelta",
+          path: rutaDeNodo(sceneEnCurso.id, node.id),
+          message: acertada
+            ? `Se cumplió una condición de la rama; se continúa en "${destino}".`
+            : `Ninguna condición de la rama se cumplió; se continúa por el camino por defecto, "${destino}".`,
+        });
+        idEnCurso = destino;
         continue;
       }
 
@@ -469,6 +495,35 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
         variablesDeSesion.set(clave, valor);
       }
       transicionar(escenaActual, elegida.option.next);
+      return true;
+    },
+
+    terminarMinijuego(nodeId) {
+      if (vistaActual.kind !== "minigame") {
+        return rechazar(
+          "accion-fuera-de-lugar",
+          `Se dio por terminado un minijuego, pero la vista actual es "${vistaActual.kind}".`,
+        );
+      }
+      const destino = nodeId ?? vistaActual.node.next;
+      if (!buscarNodo(escenaActual, destino)) {
+        return rechazar(
+          "navegacion-rota",
+          `El minijuego "${vistaActual.node.id}" quiso continuar en "${destino}", que no existe en la escena.`,
+        );
+      }
+      transicionar(escenaActual, destino);
+      return true;
+    },
+
+    terminarRecompensa() {
+      if (vistaActual.kind !== "reward") {
+        return rechazar(
+          "accion-fuera-de-lugar",
+          `Se dio por vista una recompensa, pero la vista actual es "${vistaActual.kind}".`,
+        );
+      }
+      transicionar(escenaActual, vistaActual.node.next);
       return true;
     },
 

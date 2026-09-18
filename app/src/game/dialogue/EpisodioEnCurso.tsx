@@ -19,6 +19,7 @@ import {
   crearProgressStore,
   crearRuntime,
   type AgeMode,
+  type CastId,
   type EpisodeContent,
   type RuntimeDiagnostic,
 } from "../../engine";
@@ -28,7 +29,9 @@ import { SelectorDeEdad } from "../GameShell";
 import { EscenaDelEpisodio } from "../scene/EscenaDelEpisodio";
 import { soportaWebGL } from "../scene/soporte-webgl";
 import { TEXTOS_UI } from "../ui/textos-ui";
+import { Minijuego } from "../minigames";
 import { AvisoDeDesarrollo } from "./AvisoDeDesarrollo";
+import { Celebracion } from "./Celebracion";
 import { Decisiones } from "./Decisiones";
 import { LineaDeDialogo } from "./LineaDeDialogo";
 import { PantallaDeCierre } from "./PantallaDeCierre";
@@ -98,6 +101,21 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
   const saltar = useCallback(() => {
     runtime.saltarNodoNoImplementado();
   }, [runtime]);
+  const terminarMinijuego = useCallback(
+    (nodeId?: string) => {
+      runtime.terminarMinijuego(nodeId);
+    },
+    [runtime],
+  );
+
+  /** Nombre de un personaje, resuelto desde el contenido. */
+  const nombreDe = useCallback(
+    (castId: CastId) => {
+      const entrada = episodio.cast[castId];
+      return entrada ? runtime.texto(entrada.displayNameLocId) : castId;
+    },
+    [episodio, runtime],
+  );
 
   const pausa = episodio.globalUi.pause;
   const opcionDeParar = pausa.options.find((opcion) => opcion.id === "quit");
@@ -120,6 +138,23 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
 
         {vista.kind === "choice" ? (
           <Decisiones vista={vista} alElegir={elegir} />
+        ) : null}
+
+        {vista.kind === "minigame" ? (
+          <Minijuego
+            vista={vista}
+            texto={runtime.texto}
+            nombreDe={nombreDe}
+            alTerminar={terminarMinijuego}
+          />
+        ) : null}
+
+        {vista.kind === "reward" ? (
+          <Celebracion
+            vista={vista}
+            nombreDe={nombreDe}
+            alContinuar={runtime.terminarRecompensa}
+          />
         ) : null}
 
         {vista.kind === "end" ? (

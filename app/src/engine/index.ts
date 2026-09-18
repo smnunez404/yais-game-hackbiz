@@ -104,6 +104,8 @@ export type {
   EndView,
   ErrorView,
   LineView,
+  MinigameView,
+  RewardView,
   Runtime,
   RuntimeDiagnostic,
   RuntimeDiagnosticCode,

@@ -41,8 +41,10 @@ export interface RuntimeState {
 
 /** Motivo de un diagnóstico de desarrollo. Nunca es visible para un niño. */
 export type RuntimeDiagnosticCode =
-  /** Se alcanzó `minigame`, `branch` o `reward`: validados, todavía sin interfaz. */
+  /** Se alcanzó `minigame` o `reward`: validados, todavía sin interfaz. */
   | "nodo-no-implementado"
+  /** Una rama condicional decidió por dónde seguir. */
+  | "rama-resuelta"
   /** El contenido pidió persistir un flag fuera de la allowlist de AC-5. */
   | "flag-ignorado"
   /** `onEnter.setProgress` guarda valores que este slice no persiste (AC-5). */
@@ -101,6 +103,29 @@ export interface ChoiceView {
   readonly precedingLine: LineView | null;
 }
 
+/**
+ * Un minijuego del contenido, listo para presentarse. El motor no sabe cómo
+ * se juega ninguno: entrega el nodo con su configuración y espera a que la
+ * interfaz diga que terminó. Toda la letra —tarjetas, respuestas,
+ * retroalimentación— vive en el contenido.
+ */
+export interface MinigameView {
+  readonly kind: "minigame";
+  readonly scene: Scene;
+  readonly node: MinigameNode;
+}
+
+/**
+ * Una recompensa del episodio. Es siempre cosmética y por completar, nunca
+ * por acertar (Constitución V): el contenido declara qué se restaura del
+ * mundo y qué celebración se ve, y nada de eso depende de cómo se jugó.
+ */
+export interface RewardView {
+  readonly kind: "reward";
+  readonly scene: Scene;
+  readonly node: RewardNode;
+}
+
 export interface EndView {
   readonly kind: "end";
   readonly scene: Scene;
@@ -139,7 +164,14 @@ export interface ErrorView {
   readonly diagnostic: RuntimeDiagnostic;
 }
 
-export type RuntimeView = LineView | ChoiceView | EndView | UnimplementedView | ErrorView;
+export type RuntimeView =
+  | LineView
+  | ChoiceView
+  | MinigameView
+  | RewardView
+  | EndView
+  | UnimplementedView
+  | ErrorView;
 
 export interface RuntimeOptions {
   readonly ageMode: AgeMode;
@@ -174,6 +206,15 @@ export interface Runtime {
   avanzar(): boolean;
   /** Elige una opción de la decisión actual. `false` si no aplica. */
   elegir(optionId: string): boolean;
+  /**
+   * Da por terminado el minijuego en curso. Sin argumento continúa por el
+   * `next` del nodo; con un id de nodo va ahí, que es lo que necesita el
+   * botón de parar del juego de chocar las manos, cuyo destino declara el
+   * propio contenido (`stopButton.onPress`).
+   */
+  terminarMinijuego(nodeId?: NodeId): boolean;
+  /** Da por vista la celebración de una recompensa y continúa. */
+  terminarRecompensa(): boolean;
   /**
    * Salida de desarrollo para cruzar un nodo sin interfaz todavía. Junto con
    * `irAEscena` y `startSceneId`, forma el juego de herramientas que la UI

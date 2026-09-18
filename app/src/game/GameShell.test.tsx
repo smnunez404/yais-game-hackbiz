@@ -73,6 +73,27 @@ async function empezarEn(escena: string, modo?: "6-8" | "9-12") {
   return usuario;
 }
 
+/**
+ * Juega hacia adelante pulsando el control principal de cada pantalla, sea
+ * una línea, un minijuego o una celebración. Se detiene en una decisión —ahí
+ * hay que elegir— o al llegar al cierre.
+ */
+async function jugarHastaElegirOTerminar(
+  usuario: ReturnType<typeof userEvent.setup>,
+  maxPasos = 60,
+) {
+  for (let paso = 0; paso < maxPasos; paso += 1) {
+    if (document.querySelector(".cierre")) return "cierre";
+    // Una decisión del guion se reconoce por su rol, no por la clase de la
+    // lista: los minijuegos reutilizan esa retícula para sus tarjetas.
+    if (document.querySelector('[role="group"]')) return "decision";
+    const principal = document.querySelector<HTMLButtonElement>("[data-principal='true']");
+    if (!principal) return "sin-control";
+    await usuario.click(principal);
+  }
+  throw new Error(`El episodio no avanzó en ${maxPasos} pasos.`);
+}
+
 /** Avanza líneas pulsando "Continuar" hasta que aparezca una decisión. */
 async function avanzarHastaLaDecision(usuario: ReturnType<typeof userEvent.setup>) {
   for (let intento = 0; intento < 20; intento += 1) {
@@ -237,21 +258,9 @@ describe("GameShell — cierre del episodio", () => {
   it("muestra el cierre y el pie para la persona adulta, y persiste solo ep01.completed (AC-5)", async () => {
     const usuario = await empezarEn("s07_reconstruccion");
 
-    // La última escena cruza un minijuego y una recompensa que todavía no
-    // tienen interfaz; se saltan con la herramienta de desarrollo.
-    for (let paso = 0; paso < 12; paso += 1) {
-      const continuar = screen.queryByRole("button", { name: TEXTOS_UI.dialogo.continuar });
-      if (continuar) {
-        await usuario.click(continuar);
-        continue;
-      }
-      const saltar = screen.queryByRole("button", { name: TEXTOS_UI.desarrollo.continuarSaltando });
-      if (saltar) {
-        await usuario.click(saltar);
-        continue;
-      }
-      break;
-    }
+    // La última escena se juega entera: el minijuego del puente y la
+    // celebración, sin saltarse nada.
+    await jugarHastaElegirOTerminar(usuario);
 
     const debrief = episodio.scenes
       .find((scene) => scene.id === "s07_reconstruccion")
@@ -270,13 +279,7 @@ describe("GameShell — cierre del episodio", () => {
 
   it("deja volver a jugar desde el cierre, sin penalización (AC-4)", async () => {
     const usuario = await empezarEn("s07_reconstruccion");
-    for (let paso = 0; paso < 12; paso += 1) {
-      const continuar = screen.queryByRole("button", { name: TEXTOS_UI.dialogo.continuar });
-      const saltar = screen.queryByRole("button", { name: TEXTOS_UI.desarrollo.continuarSaltando });
-      if (continuar) await usuario.click(continuar);
-      else if (saltar) await usuario.click(saltar);
-      else break;
-    }
+    await jugarHastaElegirOTerminar(usuario);
 
     await usuario.click(screen.getByRole("button", { name: TEXTOS_UI.cierre.volverAJugar }));
 
@@ -285,14 +288,56 @@ describe("GameShell — cierre del episodio", () => {
   });
 });
 
-describe("GameShell — nodos sin interfaz", () => {
-  it("avisa que el paso no tiene interfaz en vez de fingir un minijuego", async () => {
+describe("GameShell — minijuegos", () => {
+  it("la brújula corporal acepta cualquier respuesta y ninguna es un error", async () => {
     const usuario = await empezarEn("s02_brujula");
     await avanzarHastaLaDecision(usuario);
 
-    expect(screen.getByText(TEXTOS_UI.desarrollo.nodoSinInterfaz)).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: TEXTOS_UI.desarrollo.continuarSaltando }),
-    ).toBeVisible();
+    // Las tres respuestas están disponibles y ninguna se marca como buena o
+    // mala: elegir cualquiera lleva a la respuesta de Capi (Constitución V).
+    const respuestas = screen.getAllByRole("button").filter((boton) =>
+      /Todo tranquilo|Hmm, no sé|¡Uh-oh!/.test(boton.textContent ?? ""),
+    );
+    expect(respuestas).toHaveLength(3);
+
+    await usuario.click(respuestas[2]!);
+    expect(screen.getByRole("button", { name: TEXTOS_UI.dialogo.continuar })).toBeVisible();
+  });
+
+  it("el juego de chocar las manos se puede parar en cualquier momento", async () => {
+    const usuario = await empezarEn("s04_tomi");
+    await avanzarHastaLaDecision(usuario);
+    await usuario.click(screen.getByRole("button", { name: /Preguntar primero/ }));
+    await avanzarHastaLaDecision(usuario);
+    await usuario.click(screen.getByRole("button", { name: /Con la mano/ }));
+    await avanzarHastaLaDecision(usuario);
+    await usuario.click(screen.getByRole("button", { name: /Sí|Dale/ }));
+
+    // El botón de parar existe desde el primer momento, con el texto que le
+    // pone el contenido, y no hace falta llegar a ningún sitio para usarlo.
+    const parar = screen.getByRole("button", { name: texto("UI_STOP") });
+    expect(parar).toBeVisible();
+
+    await usuario.click(parar);
+    expect(screen.queryByText(TEXTOS_UI.minijuegos.chocar)).not.toBeInTheDocument();
+  });
+
+  it("el puente se arma en cualquier orden y sin equivocarse", async () => {
+    const usuario = await empezarEn("s07_reconstruccion");
+    await avanzarHastaLaDecision(usuario);
+
+    // Las tablas se buscan por su locId en el contenido, no por su texto
+    // escrito aquí.
+    const locIdsDeTablas = ["EP01_S07_T001", "EP01_S07_T002", "EP01_S07_T003"];
+    const tablas = locIdsDeTablas.map((locId) =>
+      screen.getByRole("button", { name: texto(locId) }),
+    );
+
+    // Se colocan en orden inverso: el contenido dice `anyOrderValid`.
+    for (const tabla of [...tablas].reverse()) {
+      await usuario.click(tabla);
+    }
+
+    expect(screen.getByRole("button", { name: TEXTOS_UI.dialogo.continuar })).toBeVisible();
   });
 });

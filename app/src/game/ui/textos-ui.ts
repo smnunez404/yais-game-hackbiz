@@ -33,6 +33,19 @@ export const TEXTOS_UI = {
     volverAlInicio: "Volver al inicio",
   },
 
+  /**
+   * Rótulos de los minijuegos. Son de interfaz, no narrativa: nombran lo que
+   * hay que hacer, no lo que alguien dice. Todo lo demás —tarjetas,
+   * respuestas, la reacción de Capi, el botón de parar— sale del contenido.
+   * Cuando el contenido pase la revisión de Arianna, estos tres también
+   * deberían mudarse a `localization`.
+   */
+  minijuegos: {
+    brujula: "Tu brújula",
+    chocar: "Chocar las manos",
+    puente: "Arma el puente",
+  },
+
   /** Controles de quien acompaña durante el juego. */
   adulto: {
     /* Rótulo propio y corto: usar aquí el mismo «Para la persona que
@@ -46,6 +59,7 @@ export const TEXTOS_UI = {
     preguntas: "Preguntas para conversar",
     actividad: "Actividad",
     enFamilia: "En casa",
+    celebracion: "¡Lo lograron juntos!",
     volverAJugar: "Volver a jugar",
   },
 
