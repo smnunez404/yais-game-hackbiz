@@ -122,3 +122,13 @@ export type {
   UnimplementedView,
 } from "./runtime";
 export { crearRuntime } from "./runtime";
+
+export type {
+  Encuentro,
+  EncountersContent,
+  EncounterValidationIssue,
+  EncounterValidationResult,
+  EncounterValidationWarning,
+  LineaDeEncuentro,
+} from "./encuentros";
+export { encuentrosVisiblesPara, parseEncuentros, validateEncuentros } from "./encuentros";
