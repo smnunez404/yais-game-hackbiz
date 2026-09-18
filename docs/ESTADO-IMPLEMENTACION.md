@@ -203,6 +203,40 @@ sacó una captura propia).
 
 `npm run verify` en verde con el traslado integrado.
 
+### Segunda corrección — el basurero y la botella se salían del borde
+
+El usuario mandó una captura del juego corriendo: el `recycling_bin` se veía
+prácticamente en el borde de la isla, casi cayéndose, y la `water_bottle`
+también se veía rara. Diagnóstico con números reales, no supuestos:
+`isla-partida` es el **único cruce de cuatro puentes** del mapa —
+`senderosDeIsla` le planta baldosas de sendero que, juntas, forman una cruz
+que bloquea casi todo el centro. Con el radio de colisión genérico de
+`colocacion.ts` (pensado para una isla de un solo puente), **7 de las 10
+piezas de esa isla tenían margen NEGATIVO contra el borde caminable** —
+literalmente fuera del radio de 2.6 unidades: `tree_round` en -0.34,
+`palm` en -0.51, `bench` en -0.47, `recycling_bin` en -0.45,
+`water_bottle` en -0.79, `water_drop` en -0.77, `seedling` en -0.36.
+
+Solo quedan cuatro bolsillos libres reales (las esquinas), porque la cruz de
+senderos bloquea el resto. Se añadió un campo `radio` opcional a
+`DecorPropuesto`, usado **solo en `isla-partida`**, ajustado al tamaño real
+de cada modelo (medido en los comentarios de `shared/assets.ts`) en vez del
+0.45 genérico. Con eso, las 14 piezas de la isla (6 originales + 3 props +
+**cinco** `recycling_bin`, pedidos explícitamente por el usuario) quedan sin
+solapes y con margen entre 0.10 y 0.70 contra el borde — verificado
+recorriendo la lógica real de `decoradoDeIsla`, no a ojo.
+
+El pedido literal de poner los basureros "cerca del centro" (distancia
+0.15-0.35) es geométricamente imposible en esta isla: esa zona cae entera
+dentro del cruce de senderos, bloqueada sin importar el radio de colisión.
+Quedaron en los cuatro bolsillos libres, a la distancia más cercana al
+centro que de verdad tiene hueco (~0.85-0.95).
+
+Confirmado en vivo en el navegador: se vieron dos basureros distintos en
+esquinas diferentes de la isla, ambos claramente dentro del borde, ninguno
+cerca del agua. No se confirmaron los cinco por separado. `npm run verify`
+en verde con el ajuste integrado.
+
 ## Corrección de estado — 2026-09-18
 
 Esta sección **manda sobre lo que digan las secciones de más abajo**. Las
@@ -976,3 +1010,88 @@ se elige a un amigo, como dice el guion— y el círculo de 3.
   se implementen deben pasar por la misma función que el resto
   (`aplicarFlags`), o la allowlist deja de ser el único paso hacia el
   almacenamiento.
+
+## Guía verbal de Arianna sobre «contarle a alguien» — 2026-09-18
+
+Arianna (psicóloga del equipo, única persona que aprueba contenido infantil,
+Constitución IV) dejó una aclaración verbal, transcrita tal cual, sobre cómo
+debe funcionar el mensaje de «contarle a alguien» dentro del episodio 1.
+Resumen fiel de lo que dijo:
+
+- **El juego nunca simula que el niño le cuenta algo a Capi, a la profe o a
+  cualquier NPC.** Esto no es un cambio: confirma lo que ya exige la
+  Constitución II («la app no recibe revelaciones»; no hay chat, diario ni
+  campo donde un niño escriba lo que le pasó).
+- **Lo que sí debe pasar** es que Capi transmita, como mensaje general de
+  prevención y no como respuesta a un caso concreto, que si el comportamiento
+  de una persona adulta incomoda o se siente raro, eso se cuenta a una
+  persona adulta de confianza, **real, fuera del juego**. Es enseñar el
+  concepto, no simular la revelación.
+- **Sobre un botón de ayuda/emergencia** (una idea que se propuso y que ya se
+  había descartado antes de esta aclaración, nunca llegó a construirse en el
+  código): Arianna confirma que sería engañoso, porque la Defensoría de la
+  Niñez no atiende al instante — un botón así prometería una respuesta
+  inmediata que el sistema real no puede dar. No hay nada que borrar en
+  `app/src/` ni en `content/` porque nunca se implementó; queda cerrado aquí
+  como decisión documentada, con la razón de Arianna sumada a las razones que
+  ya estaban registradas en este archivo y en `spec.md`.
+
+**Auditoría del guion existente contra esta guía**
+
+Se revisaron `s06_adultos` (Don Beto insiste con un abrazo) y
+`s07_reconstruccion` (cierre) completas en
+`content/episodes/ep01-saludo.json`, nodo por nodo, no solo las dos líneas
+señaladas:
+
+- `EP01_S07_L003` (Capi, cierre): «Y si tu brújula marca uh-oh, lo puedes
+  contar a una persona grande de confianza.» — Este mensaje **ya cumple** la
+  guía de Arianna casi palabra por palabra: es prevención general (no
+  reacciona a un caso concreto), nombra explícitamente a una persona adulta
+  de confianza, y no le pide al niño que se lo cuente a Capi. No se tocó.
+- `EP01_S07_L005` (Capi, última línea del episodio): «Gracias por ayudarme.
+  Ahora conversemos con tu profe o tu familia.» — Es una invitación al
+  debrief con adultos reales (la pantalla de cierre es `adultOnly: true`), no
+  una simulación de revelación. Coherente con la guía. No se tocó.
+- `EP01_S06_F002` (Capi, justo después de que Don Beto se detiene al notar
+  duda): «A veces cuesta decir no. Si no puedes, no es tu culpa. Y siempre lo
+  puedes contar.» — Esta línea ya tenía `reviewPriority: "critical"` y sigue
+  sin `review: "VALIDAR"` desde la aprobación general del 2026-09-18 (ver
+  aviso más arriba en este archivo), pero el aviso mismo la deja listada como
+  pregunta abierta. Frente a la guía de Arianna, es la línea con más
+  ambigüedad real: no dice a quién contarle, y aparece inmediatamente después
+  de que Capi mismo intervino en la escena, así que un niño podría leerla
+  como «cuéntamelo a mí». No se editó esta línea — está fuera del alcance
+  que se me dio y ya es una pregunta abierta formal de `spec.md` con
+  historial propio.
+
+**Decisión: se agregó UNA línea nueva, marcada sin aprobar**
+
+En vez de tocar `EP01_S06_F002`, se agregó un nodo nuevo inmediatamente
+después, `s06_f003` (locId `EP01_S06_F003`), que Capi dice antes de que la
+escena siga con la profe Clara. Texto propuesto (es-BO, mismo registro que el
+resto de la escena):
+
+> «Fuera de la isla, se lo puedes contar a una persona grande de confianza de
+> tu familia o tu escuela.»
+
+Nombra explícitamente a la persona adulta de confianza y usa la metáfora ya
+establecida del juego («la isla») para decir «en la vida real» sin romper el
+tono infantil. No menciona a Capi, a la profe ni a ningún NPC como quien
+recibe la confesión; solo transmite la recomendación general. El nodo lleva
+`"review": "VALIDAR"` (el campo real que hace aparecer el distintivo
+«Borrador no validado» en tiempo de ejecución, ver `esperaValidacion` en
+`app/src/engine/runtime.ts`) y un `reviewNote` que cita que la propuesta se
+basa en la guía verbal de Arianna del 2026-09-18, transcrita, y que falta su
+aprobación de esta redacción exacta — el concepto ya lo confirmó ella, la
+redacción no.
+
+No se tocó `EP01_S06_F002` ni ninguna otra línea existente. Se verificó con
+`npx vitest run src/engine` (84 tests, verde) desde `app/` y con
+`node scripts/check-safety.mjs` desde la raíz (sin violaciones nuevas; las
+dos advertencias de `AC-5-flags-ignorados` son preexistentes y no tienen
+relación con este cambio).
+
+Queda pendiente, y no es una decisión que le corresponda a quien escribió
+esto: que Arianna revise la redacción exacta de `EP01_S06_F003` y decida si
+`EP01_S06_F002` necesita ajustarse también, dado que ambas están ahora en la
+misma pregunta abierta de `spec.md`.

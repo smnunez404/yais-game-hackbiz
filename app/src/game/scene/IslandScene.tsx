@@ -261,6 +261,17 @@ interface DecorPropuesto {
   readonly distancia: number;
   readonly scale?: number;
   readonly rotationY?: number;
+  /**
+   * Anula `RADIO_DECORATIVO` para esta pieza. Solo hace falta cuando una isla
+   * concentra demasiado decorado en poco sitio caminable —hoy únicamente
+   * `isla-partida`, el único cruce de cuatro puentes del mapa— y el radio
+   * genérico (pensado para un árbol o un banco sueltos) hace que
+   * `puntoLibreMasCercano` tenga que apartar la pieza tan lejos que termina
+   * fuera del radio caminable (ver el comentario largo en `TEMAS_POR_ISLA`,
+   * entrada `isla-partida`). El resto de las islas no declara este campo y
+   * sigue usando el radio genérico sin cambios.
+   */
+  readonly radio?: number;
 }
 
 /**
@@ -273,26 +284,79 @@ interface DecorPropuesto {
  */
 const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
   "isla-partida": [
-    { id: "lighthouse", angulo: -2.4, distancia: 0.75, scale: 0.9 },
-    { id: "tree_round", angulo: 1.0, distancia: 0.7 },
-    { id: "tree_round", angulo: 2.6, distancia: 0.65, scale: 0.85 },
-    { id: "palm", angulo: 0.3, distancia: 0.65 },
-    { id: "bench", angulo: 0.9, distancia: 0.55, rotationY: 0.7 },
-    { id: "flower_bush", angulo: -0.5, distancia: 0.5 },
-    // Cuatro props del kit de reciclaje/cuidado (`PROP_ASSETS`) que estaban
-    // registrados desde T-001-02 y nunca se dibujaban en ningún sitio: pedido
-    // explícito para sumar decorado con tema ambiental al archipiélago, sin
-    // texto y sin mecánica nueva (Constitución IV: nada que un niño lea o
-    // escuche puede salir de aquí sin pasar antes por Arianna). Al principio
-    // se repartieron uno por isla en el tercer anillo (puramente decorativo),
-    // pero quedaban a ~20-25 unidades del punto de partida y nadie los veía
-    // sin explorar mucho; se movieron aquí, a la isla de partida —
-    // `PUNTO_DE_PARTIDA` cae dentro de su propio radio caminable, es
-    // literalmente donde aparece quien juega— para que se noten sin buscar.
-    { id: "recycling_bin", angulo: -1.5, distancia: 0.5, rotationY: -0.6 },
-    { id: "water_bottle", angulo: 1.8, distancia: 0.45 },
-    { id: "water_drop", angulo: -2.9, distancia: 0.5 },
-    { id: "seedling", angulo: -0.9, distancia: 0.45 },
+    // OJO al tocar esta lista: `isla-partida` es el único cruce de CUATRO
+    // puentes del mapa (ver `PUENTES` en `mundo.ts`), así que `senderosDeIsla`
+    // le planta cinco baldosas de sendero (una por boca más la esquina donde
+    // se cruzan) y cada una bloquea un cuadrado de 2×2 unidades a su
+    // alrededor (ver `zonaDeSendero`, más abajo). La unión de esas cinco
+    // baldosas cubre casi toda la isla en forma de cruz y dentro de la cual
+    // NO cabe una copia real —solo quedan cuatro bolsillos triangulares en
+    // las diagonales (~NE/SE/SW/NW), justo donde ya caían el faro y el
+    // primer árbol antes de este cambio—. El bug reportado (basurero y
+    // botella "cayéndose" del borde) era justo esto: con el radio genérico
+    // de colisión (`RADIO_DECORATIVO = 0.45`, pensado para un árbol o un
+    // banco sueltos en una isla con un solo puente) cada pieza nueva chocaba
+    // con el sendero o con la pieza plantada justo antes, y
+    // `puntoLibreMasCercano` la iba empujando en anillos crecientes hasta
+    // encontrar hueco — a veces más allá del propio `radioCaminable` de la
+    // isla, porque los cuatro bolsillos son diminutos y se llenan rápido.
+    // (Confirmado con un script desechable que reproduce `decoradoDeIsla`:
+    // con la lista original, 7 de las 10 piezas terminaban con margen
+    // NEGATIVO contra el borde caminable — literalmente fuera del césped.)
+    //
+    // La solución no es solo mover ángulos: es reconocer que 14 piezas no
+    // caben en cuatro bolsillos diminutos si cada una pide 0.45 de radio de
+    // colisión (un solo faro casi llena un bolsillo entero). El campo
+    // `radio` (opcional, ver `DecorPropuesto`) deja declarar aquí, SOLO para
+    // esta isla, un valor más ajustado al tamaño real del modelo (ver los
+    // comentarios de tamaño en `shared/assets.ts`: un `flower_bush` mide
+    // 0.645 m de lado, muy por debajo del 0.45 genérico; los props del kit
+    // de reciclaje miden 0.47-0.79 m). El resto de las islas no declara
+    // `radio` y sigue con el 0.45 genérico de siempre, sin cambios.
+    //
+    // Las 14 posiciones de abajo se calcularon con un empaquetador
+    // desechable (no forma parte del código: se corrió una vez con
+    // `npx tsx`, se descartó) que prueba puntos contra las zonas reales de
+    // `colocacion.ts` + los senderos de esta isla y descarta cualquiera con
+    // menos de ~0.12-0.14 de margen contra el borde caminable o que se
+    // solape con otra pieza ya puesta. Por eso los ángulos y distancias no
+    // son "redondos": son los puntos que de verdad caben. La mayoría queda
+    // con margen 0.2-0.7 (más que de sobra); las dos piezas más ajustadas
+    // (`recycling_bin` #5 y `palm`) quedan en 0.14 y 0.20 — apretadas, pero
+    // dentro del césped, no cayéndose de la isla.
+    { id: "lighthouse", angulo: 0.794, distancia: 0.73, scale: 0.9, radio: 0.32 },
+    { id: "tree_round", angulo: -0.785, distancia: 0.718, radio: 0.32 },
+    { id: "tree_round", angulo: -2.356, distancia: 0.718, scale: 0.85, radio: 0.32 },
+    { id: "bench", angulo: 2.225, distancia: 0.838, rotationY: 0.7, radio: 0.32 },
+    { id: "palm", angulo: 0.602, distancia: 0.922, radio: 0.32 },
+    { id: "flower_bush", angulo: -0.986, distancia: 0.894, radio: 0.28 },
+    // Los cuatro props del kit de reciclaje/cuidado (`PROP_ASSETS`) que
+    // estaban registrados desde T-001-02 y nunca se dibujaban en ningún
+    // sitio: pedido explícito para sumar decorado con tema ambiental al
+    // archipiélago, sin texto y sin mecánica nueva (Constitución IV: nada
+    // que un niño lea o escuche puede salir de aquí sin pasar antes por
+    // Arianna). Se colocaron en la isla de partida —`PUNTO_DE_PARTIDA` cae
+    // dentro de su propio radio caminable, es literalmente donde aparece
+    // quien juega— para que se noten sin explorar.
+    { id: "water_bottle", angulo: -2.557, distancia: 0.846, radio: 0.2 },
+    { id: "water_drop", angulo: -2.156, distancia: 0.846, radio: 0.2 },
+    { id: "seedling", angulo: 0.995, distancia: 0.854, radio: 0.2 },
+    // Cinco basureros en vez de uno: pedido explícito de sumar varios
+    // `recycling_bin` repartidos cerca del centro de esta isla. "Cerca del
+    // centro" en sentido literal (una `distancia` de 0.15-0.35) es
+    // geométricamente imposible aquí: esa zona cae entera dentro del
+    // cuadrado de sendero del cruce central (ver el comentario grande más
+    // arriba), bloqueada para CUALQUIER pieza sin importar su radio de
+    // colisión. Quedan repartidos en los cuatro bolsillos libres, a la
+    // distancia más cercana al centro que de verdad tiene hueco (~0.85-0.95
+    // en vez del 0.5 anterior, que ya de por sí terminaba empujado fuera del
+    // borde por el choque en cascada) — más agrupados entre sí que antes, ya
+    // no aislados uno por isla, que era el pedido de fondo.
+    { id: "recycling_bin", angulo: -0.585, distancia: 0.846, rotationY: -0.6, radio: 0.2 },
+    { id: "recycling_bin", angulo: -2.4, distancia: 0.918, rotationY: 0.3, radio: 0.2 },
+    { id: "recycling_bin", angulo: 0.82, distancia: 0.93, rotationY: -1.1, radio: 0.2 },
+    { id: "recycling_bin", angulo: -0.777, distancia: 0.918, rotationY: 1.4, radio: 0.2 },
+    { id: "recycling_bin", angulo: 2.4, distancia: 0.946, rotationY: 0.5, radio: 0.16 },
   ],
   "isla-faro": [
     { id: "lighthouse", angulo: -1.1, distancia: 0.75, scale: 0.9 },
@@ -427,14 +491,15 @@ function decoradoDeIsla(isla: IslaDelMundo, zonasDelMundo: readonly ZonaProhibid
 
   const decor: Pieza[] = [];
   temas.forEach((tema, indice) => {
+    const radio = tema.radio ?? RADIO_DECORATIVO;
     const deseado: Punto = {
       x: isla.centro[0] + Math.cos(tema.angulo) * isla.radioCaminable * tema.distancia,
       z: isla.centro[1] + Math.sin(tema.angulo) * isla.radioCaminable * tema.distancia,
     };
-    const libre = puntoLibreMasCercano(deseado, RADIO_DECORATIVO, zonas, {
+    const libre = puntoLibreMasCercano(deseado, radio, zonas, {
       radioMaximo: isla.radioCaminable,
     });
-    zonas.push(zonaDeDecorado(libre, RADIO_DECORATIVO));
+    zonas.push(zonaDeDecorado(libre, radio));
     decor.push({
       id: tema.id,
       clave: `${isla.clave}-decor-${indice}`,
