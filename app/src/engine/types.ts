@@ -11,6 +11,11 @@
 // porque el proyecto compila con `exactOptionalPropertyTypes` y el
 // resultado de `zod` (`.optional()`) infiere exactamente esa forma.
 
+// La unión `EpisodeNode` de más abajo necesita el tipo, además de
+// reexportarlo. Los dos archivos se importan entre sí y no pasa nada: son
+// tipos, no valores, y se borran al compilar.
+import type { MinigameNode } from "./types-minijuegos";
+
 /** Modo de edad leído del contenido (PLAN-001, contrato fijo). */
 export type AgeMode = "6-8" | "9-12";
 
@@ -223,115 +228,26 @@ export interface EndNode {
   readonly debriefScreen?: DebriefScreen | undefined;
 }
 
-/* --- Minijuegos: se validan con el mismo rigor que el resto del contenido
- * aunque el primer runtime todavía no los presenta (spec.md, «Aclaración de
- * implementación, 2026-09-17»; PLAN-001). --- */
-
-export interface FreeLookMinigameConfig {
-  readonly continueTrigger: string;
-  readonly timeLimitSeconds: number | null;
-}
-
-export interface CompassCard {
-  readonly id: string;
-  readonly locId: LocId;
-  readonly art: string;
-}
-
-export interface CompassAnswer {
-  readonly id: string;
-  readonly locId: LocId;
-  readonly icon: IconId;
-}
-
-export interface CompassFeedback {
-  readonly speaker: CastId;
-  readonly locId: LocId;
-  readonly anim: string;
-  readonly review?: "VALIDAR" | undefined;
-}
-
-export interface CompassFeedbackVariant extends CompassFeedback {
-  readonly cardIndexFrom: number;
-}
-
-export interface BodyCompassPracticeConfig {
-  readonly anyAnswerValid: boolean;
-  readonly storeAnswers: boolean;
-  readonly cards: readonly CompassCard[];
-  readonly answers: readonly CompassAnswer[];
-  readonly feedbackAfterEachCard: CompassFeedback;
-  readonly feedbackVariantAfterCard: CompassFeedbackVariant;
-}
-
-export interface StopButton {
-  readonly locId: LocId;
-  readonly alwaysVisible: boolean;
-  readonly keyboard: string;
-  readonly onPress: NodeId;
-}
-
-export interface HighFiveRhythmConfig {
-  readonly beatsBeforeQuestion: number;
-  readonly speedRequired: boolean;
-  readonly stopButton: StopButton;
-  readonly questionNode: NodeId;
-}
-
-export interface BridgePlankCard {
-  readonly id: string;
-  readonly locId: LocId;
-  readonly prop: PropId;
-}
-
-export interface OnPlaceEffect {
-  readonly sfx: string;
-}
-
-export interface BridgePlanksConfig {
-  readonly anyOrderValid: boolean;
-  readonly inputModes: readonly string[];
-  readonly cards: readonly BridgePlankCard[];
-  readonly onPlace: OnPlaceEffect;
-}
-
-export interface FreeLookMinigameNode {
-  readonly id: NodeId;
-  readonly type: "minigame";
-  readonly minigameId: "free_look";
-  readonly config: FreeLookMinigameConfig;
-  readonly next: NodeId;
-}
-
-export interface BodyCompassPracticeMinigameNode {
-  readonly id: NodeId;
-  readonly type: "minigame";
-  readonly minigameId: "body_compass_practice";
-  readonly config: BodyCompassPracticeConfig;
-  readonly next: NodeId;
-}
-
-export interface HighFiveRhythmMinigameNode {
-  readonly id: NodeId;
-  readonly type: "minigame";
-  readonly minigameId: "high_five_rhythm";
-  readonly config: HighFiveRhythmConfig;
-  readonly next: NodeId;
-}
-
-export interface BridgePlanksMinigameNode {
-  readonly id: NodeId;
-  readonly type: "minigame";
-  readonly minigameId: "bridge_planks";
-  readonly config: BridgePlanksConfig;
-  readonly next: NodeId;
-}
-
-export type MinigameNode =
-  | FreeLookMinigameNode
-  | BodyCompassPracticeMinigameNode
-  | HighFiveRhythmMinigameNode
-  | BridgePlanksMinigameNode;
+// Los tipos de los minijuegos viven en `types-minijuegos.ts` y se reexportan
+// aquí: quien importa `./types` los sigue encontrando donde siempre.
+export type {
+  BodyCompassPracticeConfig,
+  BodyCompassPracticeMinigameNode,
+  BridgePlankCard,
+  BridgePlanksConfig,
+  BridgePlanksMinigameNode,
+  CompassAnswer,
+  CompassCard,
+  CompassFeedback,
+  CompassFeedbackVariant,
+  FreeLookMinigameConfig,
+  FreeLookMinigameNode,
+  HighFiveRhythmConfig,
+  HighFiveRhythmMinigameNode,
+  MinigameNode,
+  OnPlaceEffect,
+  StopButton,
+} from "./types-minijuegos";
 
 /* --- Ramas condicionales (`branch`): sin UI en el primer runtime. --- */
 
