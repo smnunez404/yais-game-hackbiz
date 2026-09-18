@@ -8,11 +8,17 @@
 //
 // Por eso aquí no hay acierto ni error, ni contador, ni forma de "hacerlo
 // mal" (Constitución V). Después de cada tarjeta responde Capi con la línea
-// que el guion trae, y se puede volver a responder la misma tarjeta las veces
-// que haga falta.
+// que el guion trae.
 //
 // Todo el texto —tarjetas, respuestas y respuesta de Capi— viene de
-// `content/`; aquí no hay ni una palabra escrita para un niño.
+// `content/`; aquí no hay ni una palabra escrita para un niño. Tuvo un rótulo
+// «Tu brújula» y la revisión de content-guardian lo bloqueó con razón: no
+// nombraba una acción, nombraba el concepto central del episodio con el mismo
+// posesivo que usa Capi, y salía en el sitio donde va quien habla.
+//
+// La cabecera del minijuego es la propia tarjeta. Cada tarjeta se responde una
+// vez: el guion no contempla volver atrás, y como no se guarda ni se juzga
+// nada, no hay nada que rehacer.
 
 import { useState } from "react";
 
@@ -66,7 +72,6 @@ export function BrujulaCorporal({
 
   return (
     <section className="minijuego" aria-labelledby="brujula-tarjeta">
-      <p className="dialogo__hablante">{TEXTOS_UI.minijuegos.brujula}</p>
       <h2 className="dialogo__texto" id="brujula-tarjeta">
         {texto(tarjeta.locId)}
       </h2>

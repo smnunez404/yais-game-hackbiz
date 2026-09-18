@@ -51,6 +51,8 @@ export type RuntimeDiagnosticCode =
   | "progreso-ignorado"
   /** Un nodo quedó fuera del modo de edad activo y se saltó a su `next` (AC-3). */
   | "nodo-omitido-por-edad"
+  /** Una rama no entró en contenido que espera aprobación de Arianna. */
+  | "rama-pendiente-de-validar"
   /** La UI pidió una opción que no existe o no es visible en este modo de edad. */
   | "opcion-invalida"
   /** La UI llamó a una acción que la vista actual no admite. */
@@ -194,6 +196,24 @@ export interface RuntimeOptions {
    * rompería la regla aunque el motor siga siendo puro.
    */
   readonly onDiagnostic?: ((diagnostic: RuntimeDiagnostic) => void) | undefined;
+  /**
+   * Permite entrar por una rama condicional a contenido que todavía espera
+   * la aprobación de Arianna (`review: "VALIDAR"`).
+   *
+   * Por defecto `false`, y esa es la parte importante. El contenido declara
+   * `reviewPolicy.blockProductionIfPending: true` y hasta ahora nada en el
+   * código lo cumplía: implementar las ramas hizo alcanzable, sin querer, la
+   * escena del adulto que insiste —incluida la única línea marcada
+   * `reviewPriority: "critical"`—, y eso contestaba en código una pregunta
+   * abierta de SPEC-001 que decide Arianna.
+   *
+   * Con esto en `false`, una rama que llevaría a contenido pendiente toma su
+   * camino por defecto, que es justo el que no insiste. Las líneas pendientes
+   * que ya están en el camino principal no se pueden esquivar sin romper el
+   * episodio: para esas, el resguardo sigue siendo el distintivo y la
+   * preparación de quien acompaña.
+   */
+  readonly permitirContenidoPendiente?: boolean | undefined;
 }
 
 export interface Runtime {

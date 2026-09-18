@@ -41,7 +41,6 @@ export const TEXTOS_UI = {
    * deberían mudarse a `localization`.
    */
   minijuegos: {
-    brujula: "Tu brújula",
     chocar: "Chocar las manos",
     puente: "Arma el puente",
   },
@@ -59,7 +58,6 @@ export const TEXTOS_UI = {
     preguntas: "Preguntas para conversar",
     actividad: "Actividad",
     enFamilia: "En casa",
-    celebracion: "¡Lo lograron juntos!",
     volverAJugar: "Volver a jugar",
   },
 

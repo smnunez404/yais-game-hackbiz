@@ -47,6 +47,9 @@ const compassFeedbackSchema = z
     locId: z.string(),
     anim: z.string(),
     review: reviewMarkerSchema.optional(),
+    // El guion anota por qué una línea necesita revisión; se conserva para
+    // que la nota viaje con la línea y no se pierda en el camino.
+    reviewNote: z.string().optional(),
   })
   .strict();
 
@@ -155,11 +158,91 @@ const bridgePlanksMinigameNodeSchema = z
 // Unión discriminada anidada: cada variante comparte `type: "minigame"` y se
 // distingue por `minigameId`. Zod resuelve la unión interna antes de la
 // externa (probado contra esta versión exacta de la librería).
+export 
+/* --- Episodio 2: fichas de confianza y círculo de 3 --- */
+
+const trustCardZoneSchema = z
+  .object({
+    id: z.string().min(1),
+    locId: z.string().min(1),
+    icon: z.string().min(1),
+    ageModes: z.array(ageModeSchema).optional(),
+  })
+  .strict();
+
+const trustCardSchema = z
+  .object({
+    id: z.string().min(1),
+    locId: z.string().min(1),
+    expectedZone: z.string().min(1),
+    ageModes: z.array(ageModeSchema).optional(),
+    review: reviewMarkerSchema.optional(),
+    anyZoneValid: z.boolean().optional(),
+  })
+  .strict();
+
+const trustCardsConfigSchema = z
+  .object({
+    anyOrderValid: z.boolean(),
+    // Se exige `false`, no solo se declara: guardar lo que un niño clasificó
+    // sería un perfil (Constitución I).
+    storeAnswers: z.literal(false),
+    zones: z.array(trustCardZoneSchema).min(2),
+    cards: z.array(trustCardSchema).min(1),
+    feedbackByZone: z.record(z.string(), compassFeedbackSchema),
+    feedbackUnexpected: compassFeedbackSchema,
+    feedbackHint: compassFeedbackSchema,
+    feedbackAnyZone: compassFeedbackSchema,
+  })
+  .strict();
+
+export const trustCardsMinigameNodeSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("minigame"),
+    minigameId: z.literal("trust_cards"),
+    config: trustCardsConfigSchema,
+    next: z.string().min(1),
+  })
+  .strict();
+
+const circleSlotSchema = z
+  .object({
+    id: z.string().min(1),
+    locId: z.string().min(1),
+    icon: z.string().min(1),
+  })
+  .strict();
+
+const circleOfThreeConfigSchema = z
+  .object({
+    // Igual que arriba: nunca se guarda en quién pensó el niño.
+    storeAnswers: z.literal(false),
+    slots: z.array(circleSlotSchema).min(1),
+    confirmLocId: z.string().min(1),
+    stillThinkingLocId: z.string().min(1),
+    feedbackComplete: compassFeedbackSchema,
+    feedbackStillThinking: compassFeedbackSchema,
+  })
+  .strict();
+
+export const circleOfThreeMinigameNodeSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("minigame"),
+    minigameId: z.literal("circle_of_three"),
+    config: circleOfThreeConfigSchema,
+    next: z.string().min(1),
+  })
+  .strict();
+
 export const minigameNodeSchema = z.discriminatedUnion("minigameId", [
   freeLookMinigameNodeSchema,
   bodyCompassPracticeMinigameNodeSchema,
   highFiveRhythmMinigameNodeSchema,
   bridgePlanksMinigameNodeSchema,
+  trustCardsMinigameNodeSchema,
+  circleOfThreeMinigameNodeSchema,
 ]);
 
 /* ------------------------------------------------------------------------ */

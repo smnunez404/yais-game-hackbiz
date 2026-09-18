@@ -150,11 +150,7 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
         ) : null}
 
         {vista.kind === "reward" ? (
-          <Celebracion
-            vista={vista}
-            nombreDe={nombreDe}
-            alContinuar={runtime.terminarRecompensa}
-          />
+          <Celebracion alContinuar={runtime.terminarRecompensa} />
         ) : null}
 
         {vista.kind === "end" ? (

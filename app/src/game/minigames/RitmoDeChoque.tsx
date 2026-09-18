@@ -31,9 +31,23 @@ export function RitmoDeChoque({ config, texto, alTerminar }: RitmoDeChoqueProps)
 
   // La tecla de parar la declara el contenido (`stopButton.keyboard`), no la
   // interfaz: quien escribe el guion decide cómo se dice basta.
+  //
+  // El contenido pide `Space`, que es también con lo que el navegador activa
+  // el botón que tenga el foco. Si esto se quedara con la tecla siempre, quien
+  // juega con teclado nunca podría chocar las manos: pulsar espacio pararía el
+  // juego (lo encontró la revisión de a11y). Así que cuando hay un control
+  // enfocado manda el control, y la tecla global solo actúa cuando el foco no
+  // está en ninguno.
   useEffect(() => {
     function alPulsar(evento: KeyboardEvent): void {
       if (evento.code !== config.stopButton.keyboard) return;
+      const enfocado = document.activeElement;
+      const esControl =
+        enfocado instanceof HTMLButtonElement ||
+        enfocado instanceof HTMLInputElement ||
+        enfocado instanceof HTMLSelectElement ||
+        enfocado instanceof HTMLAnchorElement;
+      if (esControl) return;
       evento.preventDefault();
       alTerminar(config.stopButton.onPress);
     }

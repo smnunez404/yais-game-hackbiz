@@ -44,10 +44,16 @@ export function TablasDelPuente({ config, texto, alTerminar }: TablasDelPuentePr
                 type="button"
                 className="objetivo-tactil boton boton--opcion"
                 data-principal={tabla.id === siguientePorColocar ? "true" : undefined}
-                // Una tabla ya colocada deja de ser un control: se queda como
-                // texto para poder releerla.
-                disabled={colocada}
-                onClick={() => setColocadas((previas) => [...previas, tabla.id])}
+                // Colocada, se anuncia como no disponible pero sigue en el
+                // orden de tabulación: con `disabled` salía de la lista de
+                // controles de un lector de pantalla y dejaba de poder
+                // releerse, que era justo lo contrario de lo que se quería
+                // (revisión de content-guardian).
+                aria-disabled={colocada || undefined}
+                onClick={() => {
+                  if (colocada) return;
+                  setColocadas((previas) => [...previas, tabla.id]);
+                }}
               >
                 {colocada ? (
                   <span className="opcion__icono" aria-hidden="true">

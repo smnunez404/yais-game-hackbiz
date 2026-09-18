@@ -11,7 +11,7 @@
 // las aserciones se apoyan en ids de escena/nodo/locId, nunca en líneas de
 // diálogo.
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -171,6 +171,38 @@ function buildMinimalEpisode(overrides: MinimalEpisodeOverrides = {}) {
     },
   };
 }
+
+describe("todos los episodios de content/", () => {
+  // No se nombra ninguno: cada episodio nuevo que se añada a `content/` entra
+  // solo en esta comprobación, y si no valida, rompe aquí y no en el aula.
+  const carpeta = resolve(currentDir, "../../../content/episodes");
+  const episodios = readdirSync(carpeta).filter((archivo) => archivo.endsWith(".json"));
+
+  it("hay al menos un episodio versionado", () => {
+    expect(episodios.length).toBeGreaterThan(0);
+  });
+
+  it.each(episodios)("%s valida contra el esquema y la integridad referencial", (archivo) => {
+    const resultado = parseEpisodeContent(readFileSync(resolve(carpeta, archivo), "utf8"));
+
+    if (!resultado.ok) {
+      const detalle = resultado.issues
+        .map((issue) => `  ${issue.path}: ${issue.message}`)
+        .join("; ");
+      throw new Error(`${archivo} no valida: ${detalle}`);
+    }
+    expect(resultado.ok).toBe(true);
+  });
+
+  it.each(episodios)("%s declara persistChoices en false y sin texto libre", (archivo) => {
+    const resultado = parseEpisodeContent(readFileSync(resolve(carpeta, archivo), "utf8"));
+    if (!resultado.ok) return;
+
+    expect(resultado.episode.privacy.persistChoices).toBe(false);
+    expect(resultado.episode.privacy.freeTextInput).toBe(false);
+    expect(resultado.episode.privacy.telemetry).toBe("none");
+  });
+});
 
 describe("validateEpisodeContent — fixture mínimo", () => {
   it("acepta el fixture mínimo sin overrides (línea base de los tests siguientes)", () => {

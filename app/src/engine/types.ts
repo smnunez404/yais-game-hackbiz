@@ -61,7 +61,10 @@ export type MinigameId =
   | "free_look"
   | "body_compass_practice"
   | "high_five_rhythm"
-  | "bridge_planks";
+  | "bridge_planks"
+  // Episodio 2
+  | "trust_cards"
+  | "circle_of_three";
 
 export interface CastEntry {
   readonly model: string | null;
@@ -232,6 +235,13 @@ export interface EndNode {
 // aquí: quien importa `./types` los sigue encontrando donde siempre.
 export type {
   BodyCompassPracticeConfig,
+  CircleOfThreeConfig,
+  CircleOfThreeMinigameNode,
+  CircleSlot,
+  TrustCard,
+  TrustCardZone,
+  TrustCardsConfig,
+  TrustCardsMinigameNode,
   BodyCompassPracticeMinigameNode,
   BridgePlankCard,
   BridgePlanksConfig,

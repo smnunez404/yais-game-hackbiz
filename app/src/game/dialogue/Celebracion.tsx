@@ -8,29 +8,22 @@
 // puntúa y no premia una elección sobre otra (Constitución V). Solo marca que
 // el episodio llegó a su final y deja continuar.
 //
-// La celebración en 3D —quién celebra y con qué gesto— la lee la escena del
-// mismo nodo; aquí solo está el control para seguir.
+// Esta pantalla no dice nada. Tenía un «¡Lo lograron juntos!» escrito en
+// código y puesto en el sitio del hablante, o sea una línea de diálogo
+// inventada y atribuida al elenco; lo bloqueó la revisión de
+// content-guardian (AGENTS.md, Constitución IV). La celebración la cuentan la
+// escena 3D y la línea que el guion trae justo después; aquí solo queda el
+// control para seguir.
 
-import type { CastId, RewardView } from "../../engine";
 import { TEXTOS_UI } from "../ui/textos-ui";
 
 interface CelebracionProps {
-  readonly vista: RewardView;
-  readonly nombreDe: (castId: CastId) => string;
   readonly alContinuar: () => void;
 }
 
-export function Celebracion({ vista, nombreDe, alContinuar }: CelebracionProps) {
-  const quienes = vista.node.celebration.cast.map(nombreDe).join(", ");
-
+export function Celebracion({ alContinuar }: CelebracionProps) {
   return (
-    <section className="minijuego" aria-labelledby="celebracion-titulo">
-      <h2 className="dialogo__texto" id="celebracion-titulo">
-        {TEXTOS_UI.cierre.celebracion}
-      </h2>
-      {/* Quién celebra sale del contenido; no se nombra a nadie desde aquí. */}
-      <p className="dialogo__hablante">{quienes}</p>
-
+    <section className="minijuego">
       <button
         type="button"
         className="objetivo-tactil boton boton--primario"

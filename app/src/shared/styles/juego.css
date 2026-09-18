@@ -443,6 +443,39 @@
   list-style: none;
 }
 
+/* --- Minijuegos ---------------------------------------------------------- */
+
+/* Los minijuegos reutilizan el panel del diálogo y la retícula de tarjetas:
+   son la misma pantalla en otro momento, no una sección aparte del juego. */
+.minijuego {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.minijuego__respuesta,
+.minijuego__controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+
+.minijuego__respuesta {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Una tabla ya colocada: se lee, no se vuelve a pulsar. Se distingue por el
+   icono de marca y por el tono apagado, nunca solo por el color.
+   Contraste --color-texto-suave sobre --color-fondo: 7.68:1. */
+.boton--opcion[aria-disabled="true"] {
+  background-color: var(--color-fondo);
+  border-color: var(--color-borde);
+  color: var(--color-texto-suave);
+  cursor: default;
+}
+
 /* --- Cierre -------------------------------------------------------------- */
 
 .cierre__titulo {

@@ -76,6 +76,7 @@ interface OpcionesDePrueba {
   readonly ageMode?: AgeMode;
   readonly startSceneId?: string;
   readonly episode?: EpisodeContent;
+  readonly permitirContenidoPendiente?: boolean;
 }
 
 function montar(opciones: OpcionesDePrueba = {}): EntornoDePrueba {
@@ -86,6 +87,7 @@ function montar(opciones: OpcionesDePrueba = {}): EntornoDePrueba {
     ageMode: opciones.ageMode ?? "6-8",
     progress,
     startSceneId: opciones.startSceneId,
+    permitirContenidoPendiente: opciones.permitirContenidoPendiente,
     onDiagnostic: (diagnostic) => diagnosticos.push(diagnostic),
   });
   return { runtime, almacenamiento, progress, diagnosticos };
@@ -263,17 +265,34 @@ describe("crearRuntime — navegación", () => {
     expect(decisionDeOtraEscena.precedingLine?.scene.id).toBe("s05_luna");
   });
 
-  it("resuelve la rama de Don Beto en vez de presentarla", () => {
+  it("no entra por una rama a contenido que espera aprobación", () => {
     const { runtime, diagnosticos } = montar({ ageMode: "9-12", startSceneId: "s06_adultos" });
 
     avanzarHastaParar(runtime);
     // `s06_c001`: se saluda sin abrazo, que es la condición de la rama.
     runtime.elegir("wave");
-    // Una sola línea de respuesta y, justo después, la rama.
     runtime.avanzar();
 
-    // La rama no se ve nunca: se cruza y el episodio continúa por donde el
-    // guion dice, en este caso el nodo que solo existe para 9-12.
+    // La condición se cumple, pero `s06_n003` está marcado `VALIDAR` y el
+    // contenido declara `blockProductionIfPending`. El episodio sigue por el
+    // camino por defecto, que es el que no insiste.
+    expect(runtime.estado().nodeId).toBe("s06_n004");
+    expect(diagnosticos.some((d) => d.code === "rama-pendiente-de-validar")).toBe(true);
+  });
+
+  it("con la aprobación explícita sí entra, y solo entonces", () => {
+    // El interruptor existe para poder revisar esa escena con quien tiene que
+    // aprobarla. Por defecto está apagado.
+    const { runtime, diagnosticos } = montar({
+      ageMode: "9-12",
+      startSceneId: "s06_adultos",
+      permitirContenidoPendiente: true,
+    });
+
+    avanzarHastaParar(runtime);
+    runtime.elegir("wave");
+    runtime.avanzar();
+
     expect(runtime.vista().kind).toBe("line");
     expect(runtime.estado().nodeId).toBe("s06_n003");
     expect(diagnosticos.some((d) => d.code === "rama-resuelta")).toBe(true);

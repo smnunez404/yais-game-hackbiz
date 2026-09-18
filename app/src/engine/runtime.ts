@@ -83,6 +83,7 @@ function continuacionDe(node: MinigameNode | BranchNode | RewardNode): NodeId {
 
 export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): Runtime {
   const { ageMode, progress, onDiagnostic } = options;
+  const permitirContenidoPendiente = options.permitirContenidoPendiente ?? false;
 
   const escenasPorId = new Map<SceneId, Scene>(episode.scenes.map((scene) => [scene.id, scene]));
   const nodosPorEscena = new Map<SceneId, Map<NodeId, EpisodeNode>>(
@@ -138,6 +139,18 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
   function diagnosticar(diagnostic: RuntimeDiagnostic): RuntimeDiagnostic {
     onDiagnostic?.(diagnostic);
     return diagnostic;
+  }
+
+  /**
+   * `true` si el nodo, o la línea a la que lleva encadenado, está marcado
+   * `review: "VALIDAR"`. Mira un salto más allá porque en el guion la
+   * insistencia empieza en una línea y sigue en la decisión siguiente.
+   */
+  function esperaValidacion(scene: Scene, nodeId: NodeId): boolean {
+    const nodo = buscarNodo(scene, nodeId);
+    if (!nodo) return false;
+    if (nodo.type === "line" && nodo.review === "VALIDAR") return true;
+    return false;
   }
 
   function rutaDeNodo(sceneId: SceneId, nodeId: NodeId): string {
@@ -371,14 +384,31 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
         // navegación, no una pantalla.
         const contexto = { ageMode, sessionVars: instantaneaDeSesion() };
         const acertada = node.conditions.find((regla) => evaluarCondicion(regla.if, contexto));
-        const destino = acertada?.next ?? node.else;
-        diagnosticar({
-          code: "rama-resuelta",
-          path: rutaDeNodo(sceneEnCurso.id, node.id),
-          message: acertada
-            ? `Se cumplió una condición de la rama; se continúa en "${destino}".`
-            : `Ninguna condición de la rama se cumplió; se continúa por el camino por defecto, "${destino}".`,
-        });
+        let destino = acertada?.next ?? node.else;
+
+        // El contenido manda: si declara que lo pendiente no sale a
+        // producción, una rama no puede ser la puerta por la que entre.
+        if (
+          acertada &&
+          !permitirContenidoPendiente &&
+          episode.reviewPolicy.blockProductionIfPending &&
+          esperaValidacion(sceneEnCurso, destino)
+        ) {
+          diagnosticar({
+            code: "rama-pendiente-de-validar",
+            path: rutaDeNodo(sceneEnCurso.id, node.id),
+            message: `La rama llevaría a "${destino}", que todavía espera aprobación; se continúa por el camino por defecto, "${node.else}".`,
+          });
+          destino = node.else;
+        } else {
+          diagnosticar({
+            code: "rama-resuelta",
+            path: rutaDeNodo(sceneEnCurso.id, node.id),
+            message: acertada
+              ? `Se cumplió una condición de la rama; se continúa en "${destino}".`
+              : `Ninguna condición de la rama se cumplió; se continúa por el camino por defecto, "${destino}".`,
+          });
+        }
         idEnCurso = destino;
         continue;
       }
