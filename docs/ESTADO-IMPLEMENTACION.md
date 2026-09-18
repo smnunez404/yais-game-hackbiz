@@ -382,6 +382,57 @@ preferencia en la página.
 - El distintivo de borrador es `sticky`: con la escena y el diálogo, la página
   se desplaza en una laptop de 768 px y AC-10 pide que esté en pantalla.
 
+### Prototipo: control del personaje
+
+Fuera del alcance de SPEC-001 y marcado como tal. Quien juega mueve a Capi por
+la isla con W, A, S, D o tocando el suelo; el episodio avanza como siempre, con
+los botones del diálogo.
+
+**Qué hace y qué no**
+
+- Mover a Capi **no dispara ninguna línea, no cambia de escena y no afecta a
+  ninguna decisión**. El episodio se juega entero sin tocarlo, que es lo que
+  AC-8 exige de la ruta 2D.
+- Para que el mundo dispare el guion —acercarse a alguien y que hable— hace
+  falta un modelo espacial en `content/`, que hoy no existe: las escenas son
+  grafos de nodos, sin una sola coordenada. Eso es un cambio del modelo de
+  contenido y va por spec, no por esta capa.
+
+**Decisiones de entrada**
+
+- **Solo letras (W, A, S, D).** Las flechas desplazan la página y mueven la
+  selección de los controles del diálogo, que es la ruta accesible: caminar no
+  puede quitarle esas teclas a quien juega sin ratón. Hay un test que lo fija.
+- **Tocar el suelo también camina**, así que con un solo puntero se puede todo
+  (AC-6). El plano invisible que recibe el toque es mucho más grande que la
+  isla y el punto se acerca al sitio alcanzable más cercano: tocar el agua o el
+  cielo mueve al personaje hacia allí en vez de no hacer nada. Pedirle a un
+  niño de seis años que acierte al disco exacto convierte el control en algo
+  que «a veces no funciona».
+- **Con `prefers-reduced-motion` no hay control**: la escena está quieta por
+  AC-7 y un personaje deslizándose sin animación de caminar no sería menos
+  movimiento, sería un error.
+- El personaje no puede salirse de la isla: el radio caminable es 2,6 y la isla
+  llega a 3,13.
+- En cuanto alguien toma el control en una escena, el personaje deja de volver
+  solo a su sitio; al cambiar de escena se suelta y vuelve a entrar caminando.
+
+**Medido en el navegador**
+
+Escena quieta, cero llamadas de dibujo; manteniendo `D`, 3465 en 900 ms;
+tocando el agua, 3843; tocando el cielo, 3780. Es decir: el bucle se enciende
+solo mientras alguien se mueve de verdad.
+
+**Lo que falta para que esto sea una funcionalidad y no un prototipo**
+
+- No hay ninguna indicación en pantalla de que se puede caminar. Un rótulo
+  («toca la isla para caminar») es texto que un niño lee y tiene que venir de
+  `content/` con aprobación de Arianna, no escrito en código.
+- No se ha probado con niñas y niños, ni en el aula con un dispositivo
+  proyectado: un niño explorando mientras 24 miran es otra pedagogía que una
+  conversación guiada, y esa decisión no es de implementación.
+- Sin spec, lo de arriba puede cambiar entero.
+
 ## Pendientes y riesgos abiertos
 
 - Assets versionados en git normal (222 MB). Cada versión futura de un GLB de

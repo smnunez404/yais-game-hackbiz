@@ -16,7 +16,7 @@
 // como un error, no como un saludo.
 
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { Group } from "three";
 // Viene de `three`, que es dependencia directa; `three-stdlib` solo llega
 // aquí de rebote a través de drei y no se importa a propósito.
@@ -24,6 +24,7 @@ import { clone as clonarConEsqueleto } from "three/examples/jsm/utils/SkeletonUt
 
 import { resolveAnimationClip } from "../../shared/animation-intents";
 import { CHARACTERS, type CharacterId, type RuntimeClip } from "../../shared/assets";
+import type { ComandoDeJugador } from "./control-del-jugador";
 import type { GestoDeEscena } from "./estado-de-escena";
 import { ENTRADA, type Posicion } from "./posiciones";
 import { useCharacterAnimation } from "./useCharacterAnimation";
@@ -38,6 +39,8 @@ interface CharacterProps {
   readonly gesto: GestoDeEscena;
   readonly sessionVars: Readonly<Record<string, string | boolean>>;
   readonly menosMovimiento: boolean;
+  /** Solo el personaje que controla quien juega lo recibe. */
+  readonly comandoDelJugador?: RefObject<ComandoDeJugador | null> | undefined;
   readonly alCambiarActividad: (characterId: CharacterId, enMovimiento: boolean) => void;
 }
 
@@ -70,6 +73,7 @@ export function Character({
   gesto,
   sessionVars,
   menosMovimiento,
+  comandoDelJugador,
   alCambiarActividad,
 }: CharacterProps) {
   const grupo = useRef<Group>(null);
@@ -115,6 +119,7 @@ export function Character({
     entrada: ENTRADA,
     sceneId,
     menosMovimiento,
+    comandoDelJugador,
     alCambiarMovimiento: alCambiarCaminata,
   });
 

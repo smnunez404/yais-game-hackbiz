@@ -91,6 +91,16 @@ lo que queda no es de código:
 - Legibilidad proyectada a varios metros.
 - **Nada de esto se ha probado con niñas y niños, ni pedagógicamente.**
 
+## Añadido después de esta verificación
+
+Hay un **prototipo de control del personaje** (caminar con W, A, S, D o tocando
+el suelo) que no forma parte de SPEC-001 y no está cubierto por las medidas de
+arriba. No dispara líneas, no cambia de escena y no afecta a ninguna decisión:
+el episodio se juega igual sin usarlo. Queda descrito en
+[ESTADO-IMPLEMENTACION.md](./ESTADO-IMPLEMENTACION.md); si se queda, necesita
+spec propia, un rótulo aprobado que diga que se puede caminar, y probarse en el
+aula.
+
 ## Decisiones abiertas que no son técnicas
 
 1. **En un build de producción el episodio se detiene en el minijuego de

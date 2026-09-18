@@ -16,14 +16,16 @@
 // hay que leer, elegir o escuchar vive en la interfaz 2D, que es la ruta
 // accesible y la que sigue funcionando sola (AC-8).
 
-import { Canvas } from "@react-three/fiber";
+import { Canvas, type ThreeEvent } from "@react-three/fiber";
 import { Suspense, useCallback, useMemo, useState } from "react";
 
 import type { CharacterId } from "../../shared/assets";
 import { Character } from "./Character";
 import type { EstadoDeEscena } from "./estado-de-escena";
 import { IslandScene } from "./IslandScene";
+import { RADIO_CAMINABLE } from "./control-del-jugador";
 import { destinoDe } from "./posiciones";
+import { useControlDelJugador } from "./useControlDelJugador";
 
 interface GameCanvasProps {
   readonly escena: EstadoDeEscena;
@@ -36,6 +38,14 @@ interface GameCanvasProps {
    */
   readonly alPerderContexto: () => void;
 }
+
+/**
+ * Personaje que mueve quien juega. Es la mascota: acompaña al niño en todo el
+ * episodio y está en el reparto de las siete escenas. Mover a Capi no dispara
+ * ninguna línea ni cambia de escena —el guion no tiene coordenadas—, así que
+ * el episodio se juega igual sin tocarlo (AC-8).
+ */
+const PERSONAJE_DEL_JUGADOR: CharacterId = "capi";
 
 /** A dónde mira la cámara: al claro, no al horizonte. */
 const PUNTO_DE_MIRA: readonly [number, number, number] = [0, 0.7, 0.2];
@@ -61,6 +71,22 @@ export default function GameCanvas({
       return activo ? [...previos, characterId] : previos.filter((id) => id !== characterId);
     });
   }, []);
+
+  // Una orden nueva tiene que reencender el bucle: si la escena estaba
+  // quieta, nadie estaría dibujando para ver el primer paso.
+  const alRecibirOrden = useCallback(() => {
+    alCambiarActividad(PERSONAJE_DEL_JUGADOR, true);
+  }, [alCambiarActividad]);
+
+  const { comando, irA } = useControlDelJugador({ menosMovimiento, alRecibirOrden });
+
+  const alTocarElSuelo = useCallback(
+    (evento: ThreeEvent<PointerEvent>) => {
+      evento.stopPropagation();
+      irA(evento.point.x, evento.point.z);
+    },
+    [irA],
+  );
 
   const hayMovimiento = enMovimiento.length > 0 && !menosMovimiento;
 
@@ -103,6 +129,21 @@ export default function GameCanvas({
 
       <Suspense fallback={null}>
         <IslandScene environment={escena.environment} />
+
+        {/* Suelo invisible para señalar a dónde caminar con un toque o un
+            clic: es lo que permite mover al personaje con un solo puntero,
+            sin depender del teclado (AC-6).
+
+            Es mucho más grande que la isla a propósito. Quien toca el agua no
+            se queda sin respuesta: `irA` acerca el punto al sitio alcanzable
+            más cercano, así que el control nunca parece roto. */}
+        {menosMovimiento ? null : (
+          <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]} onPointerDown={alTocarElSuelo}>
+            <circleGeometry args={[RADIO_CAMINABLE * 5, 48]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+        )}
+
         {personajes.map(({ characterId, destino, gesto }) => (
           <Character
             key={characterId}
@@ -112,6 +153,7 @@ export default function GameCanvas({
             gesto={gesto}
             sessionVars={escena.sessionVars}
             menosMovimiento={menosMovimiento}
+            comandoDelJugador={characterId === PERSONAJE_DEL_JUGADOR ? comando : undefined}
             alCambiarActividad={alCambiarActividad}
           />
         ))}

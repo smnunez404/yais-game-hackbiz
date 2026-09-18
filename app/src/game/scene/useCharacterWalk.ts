@@ -21,6 +21,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef, type RefObject } from "react";
 import type { Group } from "three";
 
+import { dentroDeLaIsla, type ComandoDeJugador } from "./control-del-jugador";
 import type { Posicion } from "./posiciones";
 
 /** Unidades por segundo. La isla mide 6,3: cruzarla lleva unos 4 segundos. */
@@ -38,6 +39,13 @@ const UMBRAL_DE_GIRO = 0.02;
 interface OpcionesDeCaminata {
   readonly grupo: RefObject<Group | null>;
   readonly destino: Posicion;
+  /**
+   * Lo que pide quien juega, si es el personaje que controla. Manda sobre el
+   * destino del guion: en cuanto alguien toma el control en una escena, el
+   * personaje deja de volver solo a su sitio —si no, caminar sería pelearse
+   * con el juego—. Se suelta al cambiar de escena.
+   */
+  readonly comandoDelJugador?: RefObject<ComandoDeJugador | null> | undefined;
   /** Desde dónde entra al empezar una escena. */
   readonly entrada: Posicion;
   /** Cambia cuando empieza una escena nueva: dispara la entrada caminando. */
@@ -61,6 +69,7 @@ export function useCharacterWalk({
   entrada,
   sceneId,
   menosMovimiento,
+  comandoDelJugador,
   alCambiarMovimiento,
 }: OpcionesDeCaminata): void {
   // El destino se lee cuadro a cuadro desde un ref para no re-suscribir el
@@ -68,6 +77,7 @@ export function useCharacterWalk({
   // durante el render.
   const destinoRef = useRef(destino);
   const enMovimientoRef = useRef(false);
+  const jugadorTomoElControlRef = useRef(false);
 
   function marcar(enMovimiento: boolean): void {
     if (enMovimientoRef.current === enMovimiento) return;
@@ -83,6 +93,7 @@ export function useCharacterWalk({
     const inicio = menosMovimiento ? destinoRef.current : entrada;
     objeto.position.set(inicio[0], inicio[1], inicio[2]);
     objeto.rotation.y = 0;
+    jugadorTomoElControlRef.current = false;
     if (!menosMovimiento) marcar(true);
     // `sceneId` es la única dependencia real: se reposiciona al cambiar de
     // escena, no cada vez que cambia el destino dentro de la misma.
@@ -101,7 +112,42 @@ export function useCharacterWalk({
     const objeto = grupo.current;
     if (!objeto || menosMovimiento) return;
 
-    const objetivo = destinoRef.current;
+    const orden = comandoDelJugador?.current ?? null;
+    if (orden) jugadorTomoElControlRef.current = true;
+
+    if (orden?.tipo === "direccion") {
+      const paso = VELOCIDAD * delta;
+      const sitio = dentroDeLaIsla(
+        objeto.position.x + orden.x * paso,
+        objeto.position.z + orden.z * paso,
+      );
+      objeto.position.x = sitio.x;
+      objeto.position.z = sitio.z;
+      objeto.rotation.y = girarHacia(
+        objeto.rotation.y,
+        Math.atan2(orden.x, orden.z),
+        VELOCIDAD_DE_GIRO * delta,
+      );
+      marcar(true);
+      return;
+    }
+
+    // Un sitio señalado con el dedo o el ratón manda sobre el del guion; al
+    // llegar se suelta para que el guion pueda volver a decidir.
+    const senalado = orden?.tipo === "destino" ? orden.posicion : null;
+    const objetivo = senalado ?? (jugadorTomoElControlRef.current ? null : destinoRef.current);
+
+    if (!objetivo) {
+      // Quien juega tiene el control y no está pidiendo nada: el personaje se
+      // queda donde lo dejaron, mirando a la cámara.
+      if (Math.abs(objeto.rotation.y) > UMBRAL_DE_GIRO) {
+        objeto.rotation.y = girarHacia(objeto.rotation.y, 0, VELOCIDAD_DE_GIRO * delta);
+        marcar(true);
+        return;
+      }
+      marcar(false);
+      return;
+    }
     const dx = objetivo[0] - objeto.position.x;
     const dz = objetivo[2] - objeto.position.z;
     const distancia = Math.hypot(dx, dz);
@@ -122,6 +168,7 @@ export function useCharacterWalk({
     // Ya llegó: se acomoda mirando a la cámara antes de declararse quieto.
     objeto.position.x = objetivo[0];
     objeto.position.z = objetivo[2];
+    if (senalado && comandoDelJugador) comandoDelJugador.current = null;
     if (Math.abs(objeto.rotation.y) > UMBRAL_DE_GIRO) {
       objeto.rotation.y = girarHacia(objeto.rotation.y, 0, VELOCIDAD_DE_GIRO * delta);
       marcar(true);
