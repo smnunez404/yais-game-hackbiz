@@ -1,0 +1,158 @@
+/// <reference types="node" />
+// La referencia de arriba trae los tipos ambientales de Node (`node:fs`,
+// `node:path`, `node:url`) sin tocar `tsconfig.app.json`, que a propósito
+// declara `"types": []` (ver `assets.test.ts`, mismo patrón).
+
+import { readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it, vi } from "vitest";
+
+import { CHARACTERS, CHARACTER_SOURCE_FILES, type CharacterId, type RuntimeClip } from "./assets";
+import {
+  ANIMATION_INTENT_MAP,
+  PREFIJO_SALUDO_DE_SESION,
+  esSaludoDeSesion,
+  resolveAnimationClip,
+} from "./animation-intents";
+
+// app/src/shared -> app/src -> app -> raíz del repositorio (mismo cálculo que assets.test.ts).
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+
+function leerJson(rutaRelativa: string): unknown {
+  return JSON.parse(readFileSync(join(REPO_ROOT, rutaRelativa), "utf8"));
+}
+
+/** Recolecta todo valor string de una propiedad "anim" en cualquier nivel del episodio. */
+function recolectarIntencionesDeAnimacion(valor: unknown, encontradas: Set<string>): void {
+  if (Array.isArray(valor)) {
+    for (const elemento of valor) recolectarIntencionesDeAnimacion(elemento, encontradas);
+    return;
+  }
+  if (valor !== null && typeof valor === "object") {
+    for (const [clave, sub] of Object.entries(valor)) {
+      if (clave === "anim" && typeof sub === "string") {
+        encontradas.add(sub);
+      }
+      recolectarIntencionesDeAnimacion(sub, encontradas);
+    }
+  }
+}
+
+function intencionesUsadasEnElEpisodio(): ReadonlySet<string> {
+  const episodio = leerJson("content/episodes/ep01-saludo.json");
+  const encontradas = new Set<string>();
+  recolectarIntencionesDeAnimacion(episodio, encontradas);
+  return encontradas;
+}
+
+/** Clips reales por personaje, leídos de los `asset.json` de producción (no de `assets.ts`). */
+function clipsRealesPorPersonaje(): ReadonlyMap<CharacterId, ReadonlySet<RuntimeClip>> {
+  const mapa = new Map<CharacterId, ReadonlySet<RuntimeClip>>();
+  for (const characterId of Object.keys(CHARACTERS) as CharacterId[]) {
+    const rutaModelo = CHARACTER_SOURCE_FILES[characterId].model;
+    const rutaAssetJson = join(dirname(rutaModelo), "asset.json");
+    const assetJson = leerJson(rutaAssetJson) as { clips: ReadonlyArray<{ name: string }> };
+    const nombres = new Set(assetJson.clips.map((clip) => clip.name)) as Set<RuntimeClip>;
+    mapa.set(characterId, nombres);
+  }
+  return mapa;
+}
+
+describe("mapa de intenciones de animación", () => {
+  it("cubre, con entrada explícita, toda intención que usa ep01-saludo.json", () => {
+    const usadas = intencionesUsadasEnElEpisodio();
+    // El contenido real tiene 61 intenciones distintas en la fecha de esta
+    // tarea; si crece, esta afirmación falla primero y avisa con claridad.
+    expect(usadas.size).toBeGreaterThan(0);
+
+    for (const intencion of usadas) {
+      const esFija = Object.prototype.hasOwnProperty.call(ANIMATION_INTENT_MAP, intencion);
+      const esDinamica = esSaludoDeSesion(intencion);
+      expect(
+        esFija || esDinamica,
+        `"${intencion}" aparece en ep01-saludo.json pero no tiene entrada explícita en animation-intents.ts`,
+      ).toBe(true);
+    }
+  });
+
+  it("no deja ninguna intención del mapa sin usarse en el contenido actual (mapa exhaustivo, no adivinado)", () => {
+    const usadas = intencionesUsadasEnElEpisodio();
+    for (const intencion of Object.keys(ANIMATION_INTENT_MAP)) {
+      expect(usadas.has(intencion), `"${intencion}" está en el mapa pero ningún nodo la usa`).toBe(
+        true,
+      );
+    }
+  });
+
+  it("nunca asigna, ni resuelto por personaje, un clip que ese personaje no tenga de verdad", () => {
+    const clipsReales = clipsRealesPorPersonaje();
+    const personajes = Object.keys(CHARACTERS) as CharacterId[];
+
+    for (const [intentId, entrada] of Object.entries(ANIMATION_INTENT_MAP)) {
+      for (const personajeId of personajes) {
+        const locomocion = CHARACTERS[personajeId].locomotion;
+        const clipEsperado: RuntimeClip = entrada.clip === "Locomotion" ? locomocion : entrada.clip;
+        const clipsDelPersonaje = clipsReales.get(personajeId);
+        expect(
+          clipsDelPersonaje?.has(clipEsperado),
+          `"${intentId}" pide "${clipEsperado}" pero ${personajeId} no lo tiene en su asset.json real`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("resuelve una intención desconocida a Idle sin lanzar", () => {
+    expect(() => {
+      const clip = resolveAnimationClip("esto_no_existe_en_el_guion", "capi");
+      expect(clip).toBe("Idle");
+    }).not.toThrow();
+  });
+
+  it("resuelve la forma dinámica greet_from_session:* según el valor real de la variable de sesión", () => {
+    expect(
+      resolveAnimationClip(`${PREFIJO_SALUDO_DE_SESION}greetTomi`, "tomi", { greetTomi: "wave" }),
+    ).toBe("Wave");
+    expect(
+      resolveAnimationClip(`${PREFIJO_SALUDO_DE_SESION}greetTomi`, "tomi", {
+        greetTomi: "fist_bump",
+      }),
+    ).toBe("Wave");
+    // Sin variable de sesión reconocida: relleno honesto, no adivinado.
+    expect(resolveAnimationClip(`${PREFIJO_SALUDO_DE_SESION}greetBeto`, "beto")).toBe("Idle");
+    expect(
+      resolveAnimationClip(`${PREFIJO_SALUDO_DE_SESION}greetBeto`, "beto", {
+        greetBeto: "algo_no_previsto",
+      }),
+    ).toBe("Idle");
+  });
+
+  it("resuelve la locomoción real de cada personaje (Luna no tiene Walk, usa Roll)", () => {
+    expect(resolveAnimationClip("walk_with_player", "capi")).toBe("Walk");
+    expect(resolveAnimationClip("walk_with_player", "luna")).toBe("Roll");
+    expect(CHARACTERS.luna.availableClips).not.toContain("Walk");
+  });
+
+  it("advierte en desarrollo cuando la intención es desconocida", () => {
+    const advertencia = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    resolveAnimationClip("intencion_totalmente_inventada", "capi");
+    expect(advertencia).toHaveBeenCalledTimes(1);
+  });
+
+  it("no emite ninguna advertencia en producción, aunque la intención sea desconocida o el clip falte", () => {
+    const advertencia = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const devOriginal = import.meta.env.DEV;
+    Object.assign(import.meta.env, { DEV: false });
+    try {
+      expect(resolveAnimationClip("intencion_totalmente_inventada", "capi")).toBe("Idle");
+      expect(
+        resolveAnimationClip(`${PREFIJO_SALUDO_DE_SESION}greetTomi`, "tomi", {
+          greetTomi: "no_previsto",
+        }),
+      ).toBe("Idle");
+      expect(advertencia).not.toHaveBeenCalled();
+    } finally {
+      Object.assign(import.meta.env, { DEV: devOriginal });
+    }
+  });
+});
