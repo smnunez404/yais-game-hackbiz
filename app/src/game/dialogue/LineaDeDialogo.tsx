@@ -25,6 +25,12 @@ interface LineaDeDialogoProps {
   readonly vista: LineView;
   /** `globalUi.replayLineButton` del contenido; no se decide en el componente. */
   readonly permiteRepetir: boolean;
+  /**
+   * Si se dibuja el retrato 2D. Se apaga cuando quien habla ya está en la
+   * escena 3D, animado y a tamaño completo: verlo dos veces a la vez no
+   * aporta nada y le roba sitio al mundo.
+   */
+  readonly mostrarRetrato: boolean;
   readonly alContinuar: () => void;
 }
 
@@ -46,7 +52,12 @@ function anunciar(region: HTMLElement | null, texto: string): void {
   });
 }
 
-export function LineaDeDialogo({ vista, permiteRepetir, alContinuar }: LineaDeDialogoProps) {
+export function LineaDeDialogo({
+  vista,
+  permiteRepetir,
+  mostrarRetrato,
+  alContinuar,
+}: LineaDeDialogoProps) {
   const regionRef = useRef<HTMLParagraphElement>(null);
   const anuncio = `${vista.speakerName}: ${vista.text}`;
 
@@ -55,8 +66,8 @@ export function LineaDeDialogo({ vista, permiteRepetir, alContinuar }: LineaDeDi
   }, [anuncio]);
 
   return (
-    <div className="dialogo">
-      <Personaje castId={vista.speaker} nombre={vista.speakerName} />
+    <div className={mostrarRetrato ? "dialogo" : "dialogo dialogo--sin-retrato"}>
+      {mostrarRetrato ? <Personaje castId={vista.speaker} nombre={vista.speakerName} /> : null}
 
       <div className="dialogo__globo">
         <p className="dialogo__hablante">{vista.speakerName}</p>

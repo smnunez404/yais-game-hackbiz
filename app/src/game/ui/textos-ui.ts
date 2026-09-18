@@ -33,6 +33,14 @@ export const TEXTOS_UI = {
     volverAlInicio: "Volver al inicio",
   },
 
+  /** Controles de quien acompaña durante el juego. */
+  adulto: {
+    /* Rótulo propio y corto: usar aquí el mismo «Para la persona que
+       acompaña» del cierre ponía el mismo texto en dos sitios con dos
+       significados distintos. */
+    grupoDeEdad: "Grupo de edad",
+  },
+
   cierre: {
     paraLaPersonaAdulta: "Para la persona que acompaña",
     preguntas: "Preguntas para conversar",

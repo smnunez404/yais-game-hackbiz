@@ -18,31 +18,32 @@ interface PersonajeProps {
   readonly nombre: string;
 }
 
+// El retrato no lleva pie de foto: el nombre de quien habla ya está escrito
+// justo al lado, encima de su línea. Ponerlo dos veces obligaba a leerlo dos
+// veces, y con lector de pantalla a escucharlo dos veces.
+
 function tieneArteSincronizado(castId: CharacterId | "all"): castId is CharacterId {
   return castId !== "all" && PRELOADED_CHARACTER_IDS.includes(castId);
 }
 
 export function Personaje({ castId, nombre }: PersonajeProps) {
+  if (tieneArteSincronizado(castId)) {
+    return (
+      <img
+        className="personaje personaje__retrato"
+        src={CHARACTERS[castId].posterUrl}
+        // Decorativa: el nombre está al lado como texto real.
+        alt=""
+        width={160}
+        height={160}
+        decoding="async"
+      />
+    );
+  }
+
   return (
-    <figure className="personaje">
-      {tieneArteSincronizado(castId) ? (
-        <img
-          className="personaje__retrato"
-          src={CHARACTERS[castId].posterUrl}
-          // El nombre ya se lee como texto en el pie de la figura: repetirlo
-          // en el `alt` obligaría a escucharlo dos veces con lector de
-          // pantalla. La imagen es decorativa respecto de ese texto.
-          alt=""
-          width={160}
-          height={160}
-          decoding="async"
-        />
-      ) : (
-        <span className="personaje__retrato personaje__retrato--sin-arte" aria-hidden="true">
-          {nombre.slice(0, 1)}
-        </span>
-      )}
-      <figcaption className="personaje__nombre">{nombre}</figcaption>
-    </figure>
+    <span className="personaje personaje__retrato personaje__retrato--sin-arte" aria-hidden="true">
+      {nombre.slice(0, 1)}
+    </span>
   );
 }

@@ -13,7 +13,7 @@
 // pueden estar: dejarían cruzar los minijuegos y la escena de Don Beto
 // (revisión de content-guardian, T-001-04).
 
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import {
   crearProgressStore,
@@ -22,9 +22,11 @@ import {
   type EpisodeContent,
   type RuntimeDiagnostic,
 } from "../../engine";
+import { PRELOADED_CHARACTER_IDS } from "../../shared/assets";
 import { crearAlmacenamientoDelNavegador } from "../../shared/browser-storage";
 import { SelectorDeEdad } from "../GameShell";
 import { EscenaDelEpisodio } from "../scene/EscenaDelEpisodio";
+import { soportaWebGL } from "../scene/soporte-webgl";
 import { TEXTOS_UI } from "../ui/textos-ui";
 import { AvisoDeDesarrollo } from "./AvisoDeDesarrollo";
 import { Decisiones } from "./Decisiones";
@@ -61,6 +63,16 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
   const vista = useSyncExternalStore(runtime.suscribir, runtime.vista);
   const estado = useSyncExternalStore(runtime.suscribir, runtime.estado);
 
+  // Si el personaje que habla ya está en la escena 3D, el retrato 2D sobra:
+  // sería el mismo personaje dos veces en la misma pantalla. Vuelve en cuanto
+  // la escena se retira, porque entonces hace falta algo que lo muestre.
+  const [escena3DViva, setEscena3DViva] = useState(() => soportaWebGL());
+  const retirarEscena = useCallback(() => setEscena3DViva(false), []);
+  const hablanteEnEscena =
+    escena3DViva &&
+    vista.kind === "line" &&
+    (PRELOADED_CHARACTER_IDS as readonly string[]).includes(vista.speaker);
+
   // El foco sigue al contenido: al cambiar de nodo se lleva al control
   // principal de la pantalla nueva, para que quien navega con teclado no
   // tenga que buscarlo (Constitución VII).
@@ -94,13 +106,14 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
     <section className="episodio" aria-label={TEXTOS_UI.dialogo.regionEpisodio}>
       {/* Mejora progresiva: si no hay WebGL o el 3D falla, esto no renderiza
           nada y el episodio se juega igual en 2D (AC-8). */}
-      <EscenaDelEpisodio vista={vista} estado={estado} />
+      <EscenaDelEpisodio vista={vista} estado={estado} alRetirarse={retirarEscena} />
 
       <div className="episodio__contenido" ref={regionRef}>
         {vista.kind === "line" ? (
           <LineaDeDialogo
             vista={vista}
             permiteRepetir={episodio.globalUi.replayLineButton}
+            mostrarRetrato={!hablanteEnEscena}
             alContinuar={avanzar}
           />
         ) : null}
@@ -141,7 +154,16 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
       {pausa.alwaysVisible ? (
         <footer className="episodio__pie barra-adulto">
           <p className="episodio__pausa-texto">{runtime.texto(pausa.promptLocId)}</p>
-          <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
+
+          {/* El grupo de edad se toca una vez por sesión: plegado, deja de
+              competir por atención con lo que sí se usa en cada línea. */}
+          <details className="barra-adulto__ajustes">
+            <summary className="objetivo-tactil barra-adulto__resumen">
+              {TEXTOS_UI.adulto.grupoDeEdad}
+            </summary>
+            <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
+          </details>
+
           <button
             type="button"
             className="objetivo-tactil boton boton--secundario"

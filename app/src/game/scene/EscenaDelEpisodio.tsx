@@ -37,9 +37,15 @@ const GameCanvas = lazy(() => import("./GameCanvas"));
 interface EscenaDelEpisodioProps {
   readonly vista: RuntimeView;
   readonly estado: RuntimeState;
+  /**
+   * Se llama si la escena 3D deja de estar disponible en marcha. Quien está
+   * arriba lo necesita para volver a mostrar el retrato 2D: si el personaje
+   * ya no se ve en 3D, algo tiene que decir quién habla.
+   */
+  readonly alRetirarse?: (() => void) | undefined;
 }
 
-export function EscenaDelEpisodio({ vista, estado }: EscenaDelEpisodioProps) {
+export function EscenaDelEpisodio({ vista, estado, alRetirarse }: EscenaDelEpisodioProps) {
   // Ambas preguntas se hacen una vez por montaje: no cambian a mitad de
   // partida y preguntarlas en cada render solo gastaría trabajo.
   // WebGL se comprueba una vez: no aparece a mitad de sesión. La preferencia
@@ -55,10 +61,11 @@ export function EscenaDelEpisodio({ vista, estado }: EscenaDelEpisodioProps) {
   const [contextoPerdido, setContextoPerdido] = useState(false);
   const alPerderContexto = useCallback(() => {
     setContextoPerdido(true);
+    alRetirarse?.();
     if (import.meta.env.DEV) {
       console.warn("[escena] se perdió el contexto WebGL; la sesión continúa en 2D.");
     }
-  }, []);
+  }, [alRetirarse]);
 
   if (!hayWebGL || contextoPerdido || escena.personajes.length === 0) return null;
 
@@ -68,7 +75,7 @@ export function EscenaDelEpisodio({ vista, estado }: EscenaDelEpisodioProps) {
     // termina de llegar el lienzo. Si el límite de error lo retira, el
     // envoltorio se va con él y la interfaz 2D recupera su sitio sin dejar un
     // vacío (el estilo del diálogo se apoya en que `.escena` esté o no esté).
-    <LimiteDeEscena>
+    <LimiteDeEscena alRomperse={alRetirarse}>
       <div className="escena" aria-hidden="true">
         {/* Sin `fallback` visible: mientras el GLB baja, el episodio ya se
             puede jugar en 2D y un cartel de carga solo robaría atención. */}
@@ -86,6 +93,7 @@ export function EscenaDelEpisodio({ vista, estado }: EscenaDelEpisodioProps) {
 
 interface LimiteDeEscenaProps {
   readonly children: ReactNode;
+  readonly alRomperse?: (() => void) | undefined;
 }
 
 interface LimiteDeEscenaState {
@@ -106,6 +114,7 @@ class LimiteDeEscena extends Component<LimiteDeEscenaProps, LimiteDeEscenaState>
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
+    this.props.alRomperse?.();
     if (import.meta.env.DEV) {
       console.warn("[escena] la escena 3D falló y se continúa en 2D:", error, info.componentStack);
     }

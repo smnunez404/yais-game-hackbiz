@@ -70,7 +70,7 @@
   gap: var(--espacio-1);
   inline-size: 100%;
   block-size: 100%;
-  padding: var(--espacio-2) var(--espacio-1);
+  padding: var(--espacio-1);
   background-color: var(--color-superficie);
   border-color: var(--color-acento);
   color: var(--color-texto);
@@ -87,8 +87,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  inline-size: 3.5rem;
-  block-size: 3.5rem;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
   border-radius: 50%;
   background-color: var(--color-tarjeta-sol);
 }
@@ -182,6 +182,31 @@
   border-radius: var(--radio);
 }
 
+/* Ajustes de quien acompaña: plegados, para que la barra permanente solo
+   tenga lo que se usa en cada línea. */
+.barra-adulto__ajustes {
+  position: relative;
+}
+
+.barra-adulto__resumen {
+  color: var(--color-acento);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Abierto, el panel se despliega hacia arriba y no empuja la barra: si la
+   empujara, el botón de parar se movería bajo el dedo. */
+.barra-adulto__ajustes[open] .barra-adulto__edades {
+  position: absolute;
+  inset-block-end: calc(100% + var(--espacio-1));
+  inset-inline-end: 0;
+  padding: var(--espacio-1) var(--espacio-2);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  white-space: nowrap;
+}
+
 .barra-adulto__edades {
   display: flex;
   flex-wrap: wrap;
@@ -213,15 +238,27 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: var(--espacio-2);
+  /* El hueco de arriba es el del encabezado flotante: sin él, una decisión
+     de cinco opciones crece hasta meterse debajo del título y la pregunta
+     queda ilegible. */
+  padding-block-start: 4rem;
   min-block-size: calc(100dvh - var(--espacio-3) * 2);
 }
 
 /* El encabezado no empuja el mundo hacia abajo: se apoya arriba a la
    izquierda. El distintivo sigue siendo lo primero que se ve (AC-10). */
-.shell__encabezado--flotante {
+/* Se escriben con `.shell--juego` delante a propósito: `index.css` importa
+   esta hoja y define `.shell__encabezado` y `.shell__titulo` después, así que
+   con una sola clase ganaban ellos por orden de cascada. */
+.shell--juego .shell__encabezado--flotante {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
+  /* En una sola tira, no apilados: el distintivo y el título son dos rótulos
+     pequeños, y apilados ocupaban 139 px de esquina que el mundo necesita. */
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
   /* Por encima de todo, incluidas las herramientas de desarrollo: el
      distintivo de borrador no puede quedar tapado por nada (AC-10). */
   z-index: 3;
@@ -229,12 +266,12 @@
   pointer-events: none;
 }
 
-.shell__titulo--juego {
+.shell--juego .shell__titulo--juego {
   padding: var(--espacio-1) var(--espacio-2);
   background-color: var(--color-superficie);
   border: 1px solid var(--color-borde);
   border-radius: var(--radio);
-  font-size: var(--fuente-tamano-subtitulo);
+  font-size: 1.125rem;
 }
 
 /* En modo inmersivo los paneles ocupan lo justo: el mundo es la pantalla y el
@@ -301,8 +338,19 @@
 .dialogo {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: var(--espacio-2) var(--espacio-3);
+  gap: var(--espacio-1) var(--espacio-3);
   align-items: start;
+}
+
+/* Sin retrato —quien habla ya está en la escena 3D— el texto ocupa todo el
+   ancho en vez de dejar una columna vacía. */
+.dialogo--sin-retrato {
+  grid-template-columns: 1fr;
+}
+
+.dialogo--sin-retrato .dialogo__globo,
+.dialogo--sin-retrato .dialogo__controles {
+  grid-column: 1;
 }
 
 .dialogo__globo {
@@ -334,12 +382,8 @@
 /* --- Personaje ----------------------------------------------------------- */
 
 .personaje {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--espacio-1);
-  margin: 0;
   grid-row: span 2;
+  margin: 0;
 }
 
 .personaje__retrato {
@@ -375,12 +419,15 @@
   margin: 0 0 var(--espacio-2);
 }
 
-/* Retícula de tarjetas: tantas por fila como quepan sin bajar de 9rem, que
-   es el ancho al que una etiqueta de dos palabras todavía se lee proyectada.
-   En pantalla angosta cae sola a una columna, sin media query. */
+/* Retícula de tarjetas. El ancho mínimo y el tope de la lista dan tres
+   columnas como mucho: con cuatro, cinco opciones quedaban 4+1 y la huérfana
+   se leía como un error. En pantalla angosta cae sola a una columna, sin
+   media query. */
 .decisiones__lista {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  max-inline-size: 44rem;
+  margin-inline: auto;
   gap: var(--espacio-1);
   margin: 0;
   padding: 0;
@@ -496,7 +543,7 @@
   }
 
   /* En pantalla angosta el título cede su sitio: basta el distintivo. */
-  .shell__titulo--juego {
+  .shell--juego .shell__titulo--juego {
     font-size: 1rem;
   }
 
@@ -525,6 +572,23 @@
      distintivo de borrador, que no puede ocultarse (AC-10). */
   .shell--juego .herramientas-desarrollo {
     position: static;
+  }
+
+  /* Las tarjetas se leen en fila —icono a la izquierda, texto a la derecha—
+     porque apiladas, cinco opciones ocupaban el 86 % de la pantalla y el
+     mundo desaparecía. El icono, el texto y el orden siguen diciendo lo
+     mismo; lo único que cambia es cómo se reparten. */
+  .boton--opcion {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--espacio-2);
+    text-align: start;
+  }
+
+  .boton--opcion .opcion__icono {
+    flex: 0 0 auto;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
   }
 
   .boton {

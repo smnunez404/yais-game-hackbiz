@@ -483,6 +483,44 @@ contenido, ni el motor, ni la ruta accesible.
   (`useMenosMovimiento`), que es lo que había pedido la revisión de
   accesibilidad: si hay que activarlo a mitad de una demo, se aplica solo.
 
+**Pasada de UX: redundancia y saturación**
+
+Medido en el navegador antes de tocar nada, no a ojo:
+
+| Qué | Antes | Ahora |
+| --- | --- | --- |
+| Veces que se ve el nombre de quien habla | 3 (modelo 3D, pie del retrato, etiqueta) | 1 |
+| Pantalla ocupada por la interfaz, en una línea | 41 % | 39 % |
+| Pantalla ocupada en una decisión de cinco opciones | 84 % | 72 % |
+| Lo mismo a 375 px | 86 % | 57 % |
+| Altura del encabezado flotante | 139 px | 46 px |
+| Controles permanentes en pantalla | 5 | 3 |
+
+Qué se cambió y por qué:
+
+- **El retrato 2D desaparece cuando quien habla ya está en la escena 3D.** Era
+  el mismo personaje dos veces en la misma pantalla, una quieta y otra
+  animada. Vuelve solo si la escena se retira —sin WebGL, si el GLB falla o si
+  se pierde el contexto—, porque entonces hace falta algo que muestre quién
+  habla. Lo señaló la revisión de accesibilidad como decisión de atención.
+- **El nombre ya no se escribe dos veces.** El retrato perdió su pie de foto:
+  el nombre está justo al lado, encima de la línea.
+- **El grupo de edad se pliega.** Se toca una vez por sesión y estaba
+  compitiendo por atención con lo que sí se usa en cada línea. Se despliega
+  hacia arriba para que el botón de parar no se mueva bajo el dedo.
+- **Las tarjetas de decisión son más bajas y como mucho tres por fila.** Con
+  cuatro, cinco opciones quedaban 4+1 y la huérfana se leía como un error.
+- **En pantalla angosta las tarjetas pasan a fila** (icono a la izquierda):
+  apiladas, cinco opciones se comían la pantalla entera.
+- **El encabezado es una sola tira.** Apilados, el distintivo y el título
+  ocupaban 139 px de esquina, y una decisión larga llegaba a meterse debajo
+  del título dejando la pregunta ilegible.
+
+Un detalle que costó encontrar: `index.css` importa `juego.css` y **después**
+define `.shell__titulo` y `.shell__encabezado`, así que con una sola clase las
+reglas del modo inmersivo perdían por orden de cascada aunque fueran
+correctas. Van con `.shell--juego` delante.
+
 **Lo que sigue sin hacer**
 
 - Caminar no dispara nada del guion. Sigue haciendo falta el modelo espacial
