@@ -338,6 +338,31 @@ personaje colocado directamente en su sitio— y explica por qué las primeras
 capturas se veían estáticas. Para ver el movimiento hubo que desactivar esa
 preferencia en la página.
 
+**Correcciones de la revisión de a11y-perf-reviewer**
+
+- El bucle de render no se apagaba casi nunca. `alCambiarActividad(true)` se
+  llamaba para todo clip nuevo, pero el apagado solo existía para el gesto
+  puntual que termina solo: cualquier personaje que solo acompaña —montado en
+  `Idle`— y las quince intenciones del guion que resuelven directo a `Idle` o
+  `Listen` dejaban `frameloop="always"` encendido sin retorno. Ahora solo
+  `Listen` y la locomoción mantienen viva la escena. Comprobado en el
+  navegador: con Capi y Tomi juntos y la escena asentada, cero llamadas de
+  dibujo en 1,5 s; antes del arreglo habría seguido dibujando indefinidamente.
+- Perder el contexto WebGL no lanza una excepción, así que el límite de error
+  nunca lo habría visto: el comentario prometía una garantía que el código no
+  daba. Ahora se escucha `webglcontextlost` y la escena se retira de verdad.
+- El decorado contradecía al guion: el puente se veía entero mientras el
+  contenido lo declara `broken`. Las piezas del mundo consultan el
+  `environment` de la escena y el puente solo aparece cuando el contenido dice
+  `partially_fixed`.
+- Pendiente y no resuelto: el presupuesto de arte del aula está al 95,6 %
+  (23,91 MiB de 25 MiB que `sync-runtime-assets.mjs` impone como techo duro), y
+  `mascot.glb` es el 65 % de eso él solo: 16,4 MB y 226 374 triángulos para un
+  personaje que en pantalla mide 288 px. Comprimir y decimar ese GLB es la
+  palanca grande, y es tarea de arte con versión nueva, no de esta capa.
+- `prefers-reduced-motion` se lee una sola vez al montar la escena: si hay que
+  activarlo para una demo, hay que hacerlo antes de arrancar el episodio.
+
 **Correcciones de la revisión de content-guardian**
 
 - `resolveAnimationClip` ahora **sí** advierte en desarrollo cuando una

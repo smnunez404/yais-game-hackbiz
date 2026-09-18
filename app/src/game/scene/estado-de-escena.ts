@@ -34,6 +34,11 @@ export type GestoDeEscena =
 
 export interface EstadoDeEscena {
   readonly sceneId: string;
+  /**
+   * Estado del entorno que declara la escena (`bridge_main: "broken"`, etc.).
+   * El decorado lo consulta para no contradecir al guion.
+   */
+  readonly environment: Readonly<Record<string, string>>;
   /** Personajes en el escenario: solo los que tienen GLB sincronizado. */
   readonly personajes: readonly CharacterId[];
   /** Quién habla o escucha ahora, si tiene GLB. */
@@ -80,6 +85,7 @@ function personajesDe(vista: RuntimeView): readonly CharacterId[] {
 export function estadoDeEscenaDesde(vista: RuntimeView, estado: RuntimeState): EstadoDeEscena {
   const base = {
     sceneId: vista.scene.id,
+    environment: vista.scene.environment,
     personajes: personajesDe(vista),
     sessionVars: soloSaludos(estado.sessionVars),
   } as const;

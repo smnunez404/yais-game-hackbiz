@@ -56,6 +56,20 @@ const MS_DE_ASENTAMIENTO = SEGUNDOS_DE_MEZCLA * 1000 + 100;
 
 const CLIP_DE_REPOSO: RuntimeClip = "Idle";
 
+/**
+ * Clips sostenidos que sí justifican seguir dibujando. `Listen` porque el
+ * personaje espera una respuesta y congelarlo ahí se lee como que el juego se
+ * colgó; la locomoción porque el personaje se está desplazando de verdad.
+ *
+ * Todo lo demás —el reposo de quien solo acompaña, y las quince intenciones
+ * del guion que resuelven directo a `Idle` o a un clip neutro— deja de
+ * mantener viva la escena en cuanto termina la mezcla. Sin esta lista, el
+ * `frameloop` se quedaba en "always" para siempre en cuanto había dos
+ * personajes en escena, que es el caso común, y la optimización entera no
+ * servía de nada (revisión de a11y-perf-reviewer).
+ */
+const CLIPS_QUE_MANTIENEN_VIVA_LA_ESCENA: readonly RuntimeClip[] = ["Listen", "Walk", "Roll"];
+
 type AccionesPorNombre = Partial<Record<string, AnimationAction | null>>;
 
 interface OpcionesDeAnimacion {
@@ -119,9 +133,16 @@ export function useCharacterAnimation({
     clipActivoRef.current = clip;
     alCambiarActividad(true);
 
-    if (!puntual) return;
-
     let asentamiento: ReturnType<typeof setTimeout> | null = null;
+
+    if (!puntual) {
+      if (CLIPS_QUE_MANTIENEN_VIVA_LA_ESCENA.includes(clip)) return;
+      // Reposo: se deja terminar la mezcla y la escena se declara quieta.
+      asentamiento = setTimeout(() => alCambiarActividad(false), MS_DE_ASENTAMIENTO);
+      return () => {
+        if (asentamiento !== null) clearTimeout(asentamiento);
+      };
+    }
 
     function alTerminar(evento: { action: AnimationAction }): void {
       if (evento.action !== destino) return;

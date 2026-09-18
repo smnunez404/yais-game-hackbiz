@@ -26,6 +26,13 @@ interface Pieza {
   readonly position: Posicion;
   readonly rotationY?: number;
   readonly scale?: number;
+  /**
+   * Elemento de `environment` del que depende esta pieza. Si la escena lo
+   * declara en un estado que no sabemos representar, la pieza no se monta:
+   * mostrar un puente entero mientras el guion dice que está roto sería
+   * contradecir el contenido con el decorado.
+   */
+  readonly dependeDe?: { readonly elemento: string; readonly estadosQueLoOcultan: readonly string[] };
 }
 
 /** Altura del césped de la isla, medida en su GLB. */
@@ -41,8 +48,16 @@ const PIEZAS: readonly Pieza[] = [
   { id: "path_straight", clave: "sendero-1", position: [-1.5, 0.06, 2.0] },
   { id: "path_straight", clave: "sendero-2", position: [-1.5, 0.06, 0.1] },
 
-  // El puente que el episodio reconstruye al final, al borde de la isla.
-  { id: "bridge_straight", clave: "puente", position: [0.2, 0.1, -3.0] },
+  // El puente que el episodio reconstruye al final. El contenido lo declara
+  // `broken` en las tres primeras escenas y `partially_fixed` en las dos
+  // últimas; no existe un modelo de puente roto, así que mientras lo esté no
+  // se muestra ninguno.
+  {
+    id: "bridge_straight",
+    clave: "puente",
+    position: [0.2, 0.1, -3.0],
+    dependeDe: { elemento: "bridge_main", estadosQueLoOcultan: ["broken"] },
+  },
 
   { id: "lighthouse", clave: "faro", position: [-2.1, CESPED, -2.0] },
   { id: "tree_round", clave: "arbol-1", position: [2.3, CESPED, -1.5] },
@@ -62,7 +77,14 @@ const PIEZAS: readonly Pieza[] = [
  * descarga una sola vez y `useGLTF` lo reutiliza (PLAN-001: "no copies el
  * modelo por escena").
  */
-function PiezaDelMundo({ id, position, rotationY = 0, scale = 1 }: Omit<Pieza, "clave">) {
+interface PiezaDelMundoProps {
+  readonly id: WorldAssetId;
+  readonly position: Posicion;
+  readonly rotationY?: number | undefined;
+  readonly scale?: number | undefined;
+}
+
+function PiezaDelMundo({ id, position, rotationY = 0, scale = 1 }: PiezaDelMundoProps) {
   // Sin decodificador Draco desde un CDN: ver `Character.tsx`.
   const { scene } = useGLTF(WORLD_ASSETS[id].modelUrl, false);
   const copia = useMemo<Object3D>(() => scene.clone(true), [scene]);
@@ -78,14 +100,31 @@ function PiezaDelMundo({ id, position, rotationY = 0, scale = 1 }: Omit<Pieza, "
   );
 }
 
-export function IslandScene() {
+interface IslandSceneProps {
+  /** `environment` de la escena actual, tal cual viene del contenido. */
+  readonly environment: Readonly<Record<string, string>>;
+}
+
+function seMuestra(pieza: Pieza, environment: Readonly<Record<string, string>>): boolean {
+  if (!pieza.dependeDe) return true;
+  const estado = environment[pieza.dependeDe.elemento];
+  return estado === undefined || !pieza.dependeDe.estadosQueLoOcultan.includes(estado);
+}
+
+export function IslandScene({ environment }: IslandSceneProps) {
   const { scene } = useGLTF(WORLD_ASSETS.island_large.modelUrl, false);
 
   return (
     <group>
       <primitive object={scene} position={[0, 0, 0]} dispose={null} />
-      {PIEZAS.map(({ clave, ...pieza }) => (
-        <PiezaDelMundo key={clave} {...pieza} />
+      {PIEZAS.filter((pieza) => seMuestra(pieza, environment)).map((pieza) => (
+        <PiezaDelMundo
+          key={pieza.clave}
+          id={pieza.id}
+          position={pieza.position}
+          rotationY={pieza.rotationY}
+          scale={pieza.scale}
+        />
       ))}
     </group>
   );

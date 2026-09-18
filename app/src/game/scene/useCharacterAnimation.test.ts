@@ -155,6 +155,37 @@ describe("useCharacterAnimation", () => {
     expect(listen.clampWhenFinished).toBe(false);
   });
 
+  it("escuchar mantiene viva la escena mientras el niño decide", () => {
+    vi.useFakeTimers();
+    try {
+      const { alCambiarActividad } = montar("Listen");
+
+      vi.advanceTimersByTime(2000);
+
+      // Congelar a quien espera una respuesta se lee como que el juego se
+      // colgó: aquí el bucle se queda encendido a propósito.
+      expect(alCambiarActividad).toHaveBeenLastCalledWith(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("el reposo de quien solo acompaña deja de mantener viva la escena", () => {
+    vi.useFakeTimers();
+    try {
+      const { alCambiarActividad } = montar("Idle");
+
+      // Antes esto no ocurría nunca: `Idle` encendía el bucle y nada lo
+      // apagaba, así que bastaba un segundo personaje en escena para que el
+      // canvas dibujara para siempre (revisión de a11y-perf-reviewer).
+      expect(alCambiarActividad).toHaveBeenLastCalledWith(true);
+      vi.advanceTimersByTime(400);
+      expect(alCambiarActividad).toHaveBeenLastCalledWith(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("cambiar de clip mezcla desde el anterior, sin cortes secos", () => {
     const { listen, vista } = montar("Wave");
 

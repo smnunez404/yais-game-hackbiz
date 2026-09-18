@@ -28,6 +28,13 @@ import { destinoDe } from "./posiciones";
 interface GameCanvasProps {
   readonly escena: EstadoDeEscena;
   readonly menosMovimiento: boolean;
+  /**
+   * Se llama si el navegador pierde el contexto WebGL: una laptop vieja
+   * sosteniendo un proyector varias horas puede llegar ahí. No es una
+   * excepción de JavaScript, así que un límite de error no la atrapa; hay que
+   * escuchar el evento (revisión de a11y-perf-reviewer).
+   */
+  readonly alPerderContexto: () => void;
 }
 
 /** A dónde mira la cámara: al claro, no al horizonte. */
@@ -40,7 +47,11 @@ const PUNTO_DE_MIRA: readonly [number, number, number] = [0, 0.7, 0.2];
  */
 const POSICION_DE_CAMARA: readonly [number, number, number] = [0, 3.4, 8.6];
 
-export default function GameCanvas({ escena, menosMovimiento }: GameCanvasProps) {
+export default function GameCanvas({
+  escena,
+  menosMovimiento,
+  alPerderContexto,
+}: GameCanvasProps) {
   const [enMovimiento, setEnMovimiento] = useState<readonly CharacterId[]>([]);
 
   const alCambiarActividad = useCallback((characterId: CharacterId, activo: boolean) => {
@@ -72,7 +83,16 @@ export default function GameCanvas({ escena, menosMovimiento }: GameCanvasProps)
     <Canvas
       frameloop={hayMovimiento ? "always" : "demand"}
       camera={{ position: [...POSICION_DE_CAMARA], fov: 38 }}
-      onCreated={({ camera }) => camera.lookAt(...PUNTO_DE_MIRA)}
+      onCreated={({ camera, gl }) => {
+        camera.lookAt(...PUNTO_DE_MIRA);
+        gl.domElement.addEventListener("webglcontextlost", (evento) => {
+          // Sin `preventDefault` el navegador no intentará restaurarlo; aquí
+          // no se intenta restaurar nada, se retira la escena y la sesión
+          // continúa en 2D, que es lo que protege AC-8.
+          evento.preventDefault();
+          alPerderContexto();
+        });
+      }}
       // `powerPreference: "low-power"` y sin antialias: el objetivo es una
       // laptop de aula, no una estación gráfica. Se medirá antes de subir.
       gl={{ antialias: false, powerPreference: "low-power" }}
@@ -82,7 +102,7 @@ export default function GameCanvas({ escena, menosMovimiento }: GameCanvasProps)
       <directionalLight position={[3, 5, 2]} intensity={1.4} />
 
       <Suspense fallback={null}>
-        <IslandScene />
+        <IslandScene environment={escena.environment} />
         {personajes.map(({ characterId, destino, gesto }) => (
           <Character
             key={characterId}
