@@ -4,7 +4,7 @@
 // declara `"types": []` para que el código de `src/` no dependa de globals de
 // Node. Esta es la única excepción: el test corre en Node (Vitest), no en el
 // navegador, y necesita leer el sistema de archivos real.
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -48,11 +48,28 @@ describe("registro de assets del runtime", () => {
     }
   });
 
-  it("no precarga a Luna, Clara ni Beto en este hito", () => {
-    expect(PRELOADED_CHARACTER_IDS).toEqual(["capi", "tomi"]);
-    expect(PRELOADED_CHARACTER_IDS).not.toContain("luna");
-    expect(PRELOADED_CHARACTER_IDS).not.toContain("clara");
-    expect(PRELOADED_CHARACTER_IDS).not.toContain("beto");
+  // El objetivo era que TODOS los modelos hechos quepan en el runtime. Ya
+  // caben, y este test evita que vuelvan a quedarse fuera en silencio: si
+  // alguien añade un modelo al kit y no lo registra aquí, falla la compuerta
+  // en vez de descubrirse cuando haga falta en una escena.
+  it.each([
+    ["world", "assets/production/world/v002", WORLD_SOURCE_FILES],
+    ["props", "assets/production/props/v002", PROP_SOURCE_FILES],
+  ])("el registro cubre el kit de %s entero", (_kit, dir, registro) => {
+    const enDisco = readdirSync(join(REPO_ROOT, dir), { withFileTypes: true })
+      .filter((entrada) => entrada.isDirectory())
+      .map((entrada) => entrada.name)
+      .sort();
+
+    expect(Object.keys(registro).sort()).toEqual(enDisco);
+  });
+
+  it("precarga a los cinco personajes del elenco", () => {
+    // Luna, Clara y Beto entraron cuando los GLB pasaron a la variante v002 y
+    // el elenco completo cupo en el presupuesto de 25 MiB sin subirlo.
+    expect([...PRELOADED_CHARACTER_IDS].sort()).toEqual(
+      (Object.keys(CHARACTERS) as CharacterId[]).sort(),
+    );
   });
 
   it("ninguna ruta pública sale de la carpeta allowlisted /assets/", () => {
@@ -117,7 +134,10 @@ describe("registro y script de sincronización no divergen", () => {
       (id) => !PRELOADED_CHARACTER_IDS.includes(id),
     );
 
-    expect(noPrecargados.length).toBeGreaterThan(0);
+    // Hoy están los cinco precargados, así que esta lista está vacía a
+    // propósito. El test se conserva porque la regla sigue valiendo: si
+    // alguien saca a un personaje de la precarga, su GLB no debe quedarse
+    // colgado en la allowlist del script.
 
     for (const id of noPrecargados) {
       const destino = destinoDeUrlPublica(CHARACTERS[id].modelUrl);

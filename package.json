@@ -21,5 +21,10 @@
     "test:watch": "npm run test:watch --workspace app",
     "check:safety": "node scripts/check-safety.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run check:safety && npm run build"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.5.0",
+    "@gltf-transform/extensions": "4.5.0",
+    "@gltf-transform/functions": "4.5.0"
   }
 }
