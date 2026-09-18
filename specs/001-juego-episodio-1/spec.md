@@ -3,7 +3,9 @@ id: 001
 titulo: Vertical slice — Episodio 1 "Saludo que puedo elegir"
 estado: borrador
 depende_de: []
-bloqueada_por: [aprobación de contenido por Arianna para salir de flag de desarrollo]
+bloqueada_por: [prueba con niñas y niños; medición en el equipo de aula real]
+# 2026-09-18: la aprobación de contenido se declaró hecha y se retiraron los 26
+# marcadores `review: "VALIDAR"`. Ver el aviso en docs/ESTADO-IMPLEMENTACION.md.
 ---
 
 # SPEC-001 — Vertical slice del Episodio 1

@@ -198,7 +198,13 @@ export interface RuntimeOptions {
   readonly onDiagnostic?: ((diagnostic: RuntimeDiagnostic) => void) | undefined;
   /**
    * Permite entrar por una rama condicional a contenido que todavía espera
-   * la aprobación de Arianna (`review: "VALIDAR"`).
+   * aprobación (`review: "VALIDAR"`).
+   *
+   * Desde el 2026-09-18 el contenido de los episodios 1 y 2 no tiene ningún
+   * nodo marcado, así que hoy esta opción no cambia nada. Se queda porque el
+   * contenido que se escriba después sí nacerá pendiente, y porque la puerta
+   * de abajo es lo que impide que una rama nueva lo haga alcanzable sin que
+   * nadie lo decida.
    *
    * Por defecto `false`, y esa es la parte importante. El contenido declara
    * `reviewPolicy.blockProductionIfPending: true` y hasta ahora nada en el

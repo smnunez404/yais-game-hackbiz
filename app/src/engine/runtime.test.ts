@@ -42,6 +42,28 @@ const episodio: EpisodeContent = (() => {
 
 const textos: Readonly<Record<LocId, string>> = episodio.localization[episodio.defaultLocale] ?? {};
 
+/**
+ * El mismo episodio, pero con `s06_n003` marcado `review: "VALIDAR"`.
+ *
+ * El guion real ya está aprobado y no le queda ningún marcador, así que la
+ * puerta de `blockProductionIfPending` no se puede probar contra él sin que
+ * el test dependa de que alguien no haya aprobado algo todavía. Se prueba
+ * contra este episodio de mentira: la puerta tiene que seguir funcionando
+ * para el contenido que se escriba mañana, que sí nacerá pendiente.
+ */
+const episodioConNodoPendiente: EpisodeContent = (() => {
+  const crudo: unknown = JSON.parse(readFileSync(realEpisodePath, "utf8"));
+  const escenas = (crudo as { scenes: { id: string; nodes: { id: string }[] }[] }).scenes;
+  const escena = escenas.find((candidata) => candidata.id === "s06_adultos");
+  const nodo = escena?.nodes.find((candidato) => candidato.id === "s06_n003");
+  if (!nodo) throw new Error("s06_n003 ya no existe: este test necesita otro nodo.");
+  Object.assign(nodo, { review: "VALIDAR" });
+
+  const result = parseEpisodeContent(JSON.stringify(crudo));
+  if (!result.ok) throw new Error("El episodio de prueba con nodo pendiente no valida.");
+  return result.episode;
+})();
+
 /* ------------------------------------------------------------------------ */
 /* Utilidades de prueba                                                      */
 /* ------------------------------------------------------------------------ */
@@ -266,16 +288,20 @@ describe("crearRuntime — navegación", () => {
   });
 
   it("no entra por una rama a contenido que espera aprobación", () => {
-    const { runtime, diagnosticos } = montar({ ageMode: "9-12", startSceneId: "s06_adultos" });
+    const { runtime, diagnosticos } = montar({
+      ageMode: "9-12",
+      startSceneId: "s06_adultos",
+      episode: episodioConNodoPendiente,
+    });
 
     avanzarHastaParar(runtime);
     // `s06_c001`: se saluda sin abrazo, que es la condición de la rama.
     runtime.elegir("wave");
     runtime.avanzar();
 
-    // La condición se cumple, pero `s06_n003` está marcado `VALIDAR` y el
-    // contenido declara `blockProductionIfPending`. El episodio sigue por el
-    // camino por defecto, que es el que no insiste.
+    // La condición se cumple, pero el nodo destino está marcado `VALIDAR` y
+    // el contenido declara `blockProductionIfPending`. El episodio sigue por
+    // el camino por defecto, que es el que no insiste.
     expect(runtime.estado().nodeId).toBe("s06_n004");
     expect(diagnosticos.some((d) => d.code === "rama-pendiente-de-validar")).toBe(true);
   });
@@ -286,6 +312,7 @@ describe("crearRuntime — navegación", () => {
     const { runtime, diagnosticos } = montar({
       ageMode: "9-12",
       startSceneId: "s06_adultos",
+      episode: episodioConNodoPendiente,
       permitirContenidoPendiente: true,
     });
 
@@ -296,6 +323,19 @@ describe("crearRuntime — navegación", () => {
     expect(runtime.vista().kind).toBe("line");
     expect(runtime.estado().nodeId).toBe("s06_n003");
     expect(diagnosticos.some((d) => d.code === "rama-resuelta")).toBe(true);
+  });
+
+  it("aprobado el guion, la rama se recorre sin interruptor ninguno", () => {
+    // Es el cambio real: el episodio ya no tiene ningún nodo esperando, así
+    // que la rama de 9-12 se juega tal como está escrita.
+    const { runtime, diagnosticos } = montar({ ageMode: "9-12", startSceneId: "s06_adultos" });
+
+    avanzarHastaParar(runtime);
+    runtime.elegir("wave");
+    runtime.avanzar();
+
+    expect(runtime.estado().nodeId).toBe("s06_n003");
+    expect(diagnosticos.some((d) => d.code === "rama-pendiente-de-validar")).toBe(false);
   });
 
   it("en 6-8 la misma rama cae por el camino por defecto", () => {

@@ -103,7 +103,7 @@
         { "id": "s02_n003", "type": "line", "speaker": "capi", "locId": "EP01_S02_L003", "anim": "idle", "emotion": "calm", "uiEvent": { "compassPoint": "calm" }, "audio": "vo/es-BO/EP01_S02_L003.ogg", "next": "s02_n004" },
         { "id": "s02_n004", "type": "line", "speaker": "capi", "locId": "EP01_S02_L004", "anim": "scratch_head", "emotion": "unsure", "uiEvent": { "compassPoint": "unsure" }, "audio": "vo/es-BO/EP01_S02_L004.ogg", "next": "s02_n005" },
         { "id": "s02_n005", "type": "line", "speaker": "capi", "locId": "EP01_S02_L005", "anim": "uh_face_soft", "emotion": "uhoh_soft", "uiEvent": { "compassPoint": "uhoh" }, "audio": "vo/es-BO/EP01_S02_L005.ogg", "next": "s02_n006" },
-        { "id": "s02_n006", "type": "line", "speaker": "capi", "locId": "EP01_S02_L006", "anim": "touch_belly_cheeks", "emotion": "calm", "review": "VALIDAR", "reviewNote": "Descripción de señales corporales: comprobar pertinencia para 6-8 y que no sugiera contenido sexual.", "audio": "vo/es-BO/EP01_S02_L006.ogg", "next": "s02_n007" },
+        { "id": "s02_n006", "type": "line", "speaker": "capi", "locId": "EP01_S02_L006", "anim": "touch_belly_cheeks", "emotion": "calm", "reviewNote": "Descripción de señales corporales: comprobar pertinencia para 6-8 y que no sugiera contenido sexual.", "audio": "vo/es-BO/EP01_S02_L006.ogg", "next": "s02_n007" },
         { "id": "s02_n007", "type": "line", "speaker": "capi", "locId": "EP01_S02_L007", "anim": "invite", "emotion": "happy", "audio": "vo/es-BO/EP01_S02_L007.ogg", "next": "s02_m001" },
         {
           "id": "s02_m001", "type": "minigame", "minigameId": "body_compass_practice",
@@ -120,7 +120,7 @@
               { "id": "unsure", "locId": "UI_COMPASS_UNSURE", "icon": "icon_cloud" },
               { "id": "uhoh", "locId": "UI_COMPASS_UHOH", "icon": "icon_drop_alert" }
             ],
-            "feedbackAfterEachCard": { "speaker": "capi", "locId": "EP01_S02_F001", "anim": "nod", "review": "VALIDAR" },
+            "feedbackAfterEachCard": { "speaker": "capi", "locId": "EP01_S02_F001", "anim": "nod" },
             "feedbackVariantAfterCard": { "cardIndexFrom": 1, "speaker": "capi", "locId": "EP01_S02_F002", "anim": "smile" }
           },
           "next": "s02_n008"
@@ -231,7 +231,7 @@
           ]
         },
         { "id": "s04_r003", "type": "line", "speaker": "tomi", "locId": "EP01_S04_R003", "anim": "lower_hands_smile", "emotion": "happy", "audio": "vo/es-BO/EP01_S04_R003.ogg", "next": "s04_f004" },
-        { "id": "s04_f004", "type": "line", "speaker": "capi", "locId": "EP01_S04_F004", "anim": "nod", "emotion": "warm", "feedbackTone": "affirm", "review": "VALIDAR", "reviewNote": "Cambiar de idea después de aceptar un juego de contacto.", "audio": "vo/es-BO/EP01_S04_F004.ogg", "next": "s04_end" },
+        { "id": "s04_f004", "type": "line", "speaker": "capi", "locId": "EP01_S04_F004", "anim": "nod", "emotion": "warm", "feedbackTone": "affirm", "reviewNote": "Cambiar de idea después de aceptar un juego de contacto.", "audio": "vo/es-BO/EP01_S04_F004.ogg", "next": "s04_end" },
         { "id": "s04_f005", "type": "line", "speaker": "capi", "locId": "EP01_S04_F005", "anim": "nod", "emotion": "warm", "feedbackTone": "affirm", "preAction": { "minigameExtraBeats": 2 }, "audio": "vo/es-BO/EP01_S04_F005.ogg", "next": "s04_end" },
         { "id": "s04_r004", "type": "line", "speaker": "tomi", "locId": "EP01_S04_R004", "anim": "shrug_happy", "emotion": "happy", "audio": "vo/es-BO/EP01_S04_R004.ogg", "next": "s04_f006" },
         { "id": "s04_f006", "type": "line", "speaker": "capi", "locId": "EP01_S04_F006", "anim": "smile", "emotion": "warm", "feedbackTone": "affirm", "audio": "vo/es-BO/EP01_S04_F006.ogg", "next": "s04_end" },
@@ -271,7 +271,7 @@
         { "id": "s05_r004", "type": "line", "speaker": "luna", "locId": "EP01_S05_R004", "anim": "greet_fist_bump", "emotion": "joy", "audio": "vo/es-BO/EP01_S05_R004.ogg", "next": "s05_n003" },
         { "id": "s05_r005", "type": "line", "speaker": "luna", "locId": "EP01_S05_R005", "anim": "calm_firm", "emotion": "calm", "audio": "vo/es-BO/EP01_S05_R005.ogg", "next": "s05_f002" },
         { "id": "s05_f002", "type": "line", "speaker": "capi", "locId": "EP01_S05_F002", "anim": "explain", "emotion": "warm", "feedbackTone": "gentle_redirect", "audio": "vo/es-BO/EP01_S05_F002.ogg", "next": "s05_c002" },
-        { "id": "s05_n003", "type": "line", "speaker": "luna", "locId": "EP01_S05_L003", "anim": "touch_wheel", "emotion": "confident", "review": "VALIDAR", "reviewNote": "Representación de discapacidad y espacio personal de la silla; revisar con personas con discapacidad.", "audio": "vo/es-BO/EP01_S05_L003.ogg", "next": "s05_c003" },
+        { "id": "s05_n003", "type": "line", "speaker": "luna", "locId": "EP01_S05_L003", "anim": "touch_wheel", "emotion": "confident", "reviewNote": "Representación de discapacidad y espacio personal de la silla; revisar con personas con discapacidad.", "audio": "vo/es-BO/EP01_S05_L003.ogg", "next": "s05_c003" },
         {
           "id": "s05_c003", "type": "choice",
           "options": [
@@ -315,7 +315,7 @@
           ],
           "else": "s06_n004"
         },
-        { "id": "s06_n003", "type": "line", "speaker": "beto", "locId": "EP01_S06_L003", "anim": "playful_one_step", "emotion": "playful", "ageModes": ["9-12"], "review": "VALIDAR", "reviewNote": "Adulto conocido que insiste en broma: decidir si se mantiene o se usa voz sin modelo.", "audio": "vo/es-BO/EP01_S06_L003.ogg", "next": "s06_c002" },
+        { "id": "s06_n003", "type": "line", "speaker": "beto", "locId": "EP01_S06_L003", "anim": "playful_one_step", "emotion": "playful", "ageModes": ["9-12"], "reviewNote": "Adulto conocido que insiste en broma: decidir si se mantiene o se usa voz sin modelo.", "audio": "vo/es-BO/EP01_S06_L003.ogg", "next": "s06_c002" },
         {
           "id": "s06_c002", "type": "choice", "ageModes": ["9-12"],
           "options": [
@@ -330,11 +330,11 @@
         { "id": "s06_r005", "type": "line", "speaker": "beto", "locId": "EP01_S06_R005", "anim": "apologize_from_distance", "emotion": "apologetic", "audio": "vo/es-BO/EP01_S06_R005.ogg", "next": "s06_n004" },
         { "id": "s06_r006", "type": "line", "speaker": "clara", "locId": "EP01_S06_R006", "anim": "arrive_kind_firm", "emotion": "calm", "audio": "vo/es-BO/EP01_S06_R006.ogg", "next": "s06_r007" },
         { "id": "s06_r007", "type": "line", "speaker": "beto", "locId": "EP01_S06_R007", "anim": "nod_apologetic", "emotion": "apologetic", "audio": "vo/es-BO/EP01_S06_R007.ogg", "next": "s06_n004" },
-        { "id": "s06_r008", "type": "line", "speaker": "beto", "locId": "EP01_S06_R008", "anim": "stop_notice", "emotion": "caring", "review": "VALIDAR", "reviewNote": "El adulto se detiene al notar duda; no se muestra abrazo.", "audio": "vo/es-BO/EP01_S06_R008.ogg", "next": "s06_f002" },
-        { "id": "s06_f002", "type": "line", "speaker": "capi", "locId": "EP01_S06_F002", "anim": "come_close", "emotion": "warm", "feedbackTone": "support", "review": "VALIDAR", "reviewPriority": "critical", "reviewNote": "Cláusula de no culpa si no se pudo decir no.", "audio": "vo/es-BO/EP01_S06_F002.ogg", "next": "s06_n004" },
+        { "id": "s06_r008", "type": "line", "speaker": "beto", "locId": "EP01_S06_R008", "anim": "stop_notice", "emotion": "caring", "reviewNote": "El adulto se detiene al notar duda; no se muestra abrazo.", "audio": "vo/es-BO/EP01_S06_R008.ogg", "next": "s06_f002" },
+        { "id": "s06_f002", "type": "line", "speaker": "capi", "locId": "EP01_S06_F002", "anim": "come_close", "emotion": "warm", "feedbackTone": "support", "reviewPriority": "critical", "reviewNote": "Cláusula de no culpa si no se pudo decir no.", "audio": "vo/es-BO/EP01_S06_F002.ogg", "next": "s06_n004" },
         { "id": "s06_n004", "type": "line", "speaker": "clara", "locId": "EP01_S06_L004", "anim": "arrive_wave_distance", "emotion": "happy", "audio": "vo/es-BO/EP01_S06_L004.ogg", "next": "s06_n005" },
-        { "id": "s06_n005", "type": "line", "speaker": "clara", "locId": "EP01_S06_L005", "anim": "crouch_eye_level", "emotion": "warm", "review": "VALIDAR", "audio": "vo/es-BO/EP01_S06_L005.ogg", "next": "s06_n006" },
-        { "id": "s06_n006", "type": "line", "speaker": "clara", "locId": "EP01_S06_L006", "anim": "smile", "emotion": "warm", "review": "VALIDAR", "audio": "vo/es-BO/EP01_S06_L006.ogg", "next": "s06_end" },
+        { "id": "s06_n005", "type": "line", "speaker": "clara", "locId": "EP01_S06_L005", "anim": "crouch_eye_level", "emotion": "warm", "audio": "vo/es-BO/EP01_S06_L005.ogg", "next": "s06_n006" },
+        { "id": "s06_n006", "type": "line", "speaker": "clara", "locId": "EP01_S06_L006", "anim": "smile", "emotion": "warm", "audio": "vo/es-BO/EP01_S06_L006.ogg", "next": "s06_end" },
         { "id": "s06_end", "type": "sceneChange", "scene": "s07_reconstruccion" }
       ]
     },
@@ -361,8 +361,8 @@
           },
           "next": "s07_n002"
         },
-        { "id": "s07_n002", "type": "line", "speaker": "capi", "locId": "EP01_S07_L002", "anim": "celebrate", "emotion": "joy", "review": "VALIDAR", "reviewNote": "Frase «mi cuerpo es mío».", "worldEvent": { "restore": ["bridge_main", "bench"] }, "audio": "vo/es-BO/EP01_S07_L002.ogg", "next": "s07_n003" },
-        { "id": "s07_n003", "type": "line", "speaker": "capi", "locId": "EP01_S07_L003", "anim": "compass_pulse", "emotion": "calm", "review": "VALIDAR", "uiEvent": { "hudPulse": "bodyCompass" }, "audio": "vo/es-BO/EP01_S07_L003.ogg", "next": "s07_n004" },
+        { "id": "s07_n002", "type": "line", "speaker": "capi", "locId": "EP01_S07_L002", "anim": "celebrate", "emotion": "joy", "reviewNote": "Frase «mi cuerpo es mío».", "worldEvent": { "restore": ["bridge_main", "bench"] }, "audio": "vo/es-BO/EP01_S07_L002.ogg", "next": "s07_n003" },
+        { "id": "s07_n003", "type": "line", "speaker": "capi", "locId": "EP01_S07_L003", "anim": "compass_pulse", "emotion": "calm", "uiEvent": { "hudPulse": "bodyCompass" }, "audio": "vo/es-BO/EP01_S07_L003.ogg", "next": "s07_n004" },
         { "id": "s07_n004", "type": "line", "speaker": "capi", "locId": "EP01_S07_L004", "anim": "look_path", "emotion": "curious", "audio": "vo/es-BO/EP01_S07_L004.ogg", "next": "s07_rw001" },
         {
           "id": "s07_rw001", "type": "reward",

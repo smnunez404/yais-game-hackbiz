@@ -321,8 +321,7 @@
               {
                 "id": "bad_secret",
                 "locId": "EP02_S02_T005",
-                "expectedZone": "not_care",
-                "review": "VALIDAR"
+                "expectedZone": "not_care"
               },
               {
                 "id": "angry_no_hug",
@@ -335,8 +334,7 @@
                 "expectedZone": "care",
                 "ageModes": [
                   "9-12"
-                ],
-                "review": "VALIDAR"
+                ]
               },
               {
                 "id": "gifts_silence",
@@ -344,8 +342,7 @@
                 "expectedZone": "not_care",
                 "ageModes": [
                   "9-12"
-                ],
-                "review": "VALIDAR"
+                ]
               },
               {
                 "id": "is_adult",
@@ -366,8 +363,7 @@
               "not_care": {
                 "speaker": "capi",
                 "locId": "EP02_S02_F002",
-                "anim": "calm_firm",
-                "review": "VALIDAR"
+                "anim": "calm_firm"
               }
             },
             "feedbackUnexpected": {
@@ -384,8 +380,7 @@
             "feedbackAnyZone": {
               "speaker": "capi",
               "locId": "EP02_S02_F005",
-              "anim": "explain",
-              "review": "VALIDAR"
+              "anim": "explain"
             }
           },
           "next": "s02_n002"
@@ -513,8 +508,7 @@
           "locId": "EP02_S03_F001",
           "anim": "nod",
           "emotion": "warm",
-          "next": "s03_c001",
-          "review": "VALIDAR"
+          "next": "s03_c001"
         },
         {
           "id": "s03_r002",
@@ -523,8 +517,7 @@
           "locId": "EP02_S03_R002",
           "anim": "point_self",
           "emotion": "playful",
-          "next": "s03_c001",
-          "review": "VALIDAR"
+          "next": "s03_c001"
         },
         {
           "id": "s03_r003",
@@ -542,8 +535,7 @@
           "locId": "EP02_S03_F002",
           "anim": "smile",
           "emotion": "warm",
-          "next": "s03_c001",
-          "review": "VALIDAR"
+          "next": "s03_c001"
         },
         {
           "id": "s03_r004",
@@ -654,8 +646,7 @@
           "locId": "EP02_S04_L002",
           "anim": "explain",
           "emotion": "warm",
-          "next": "s04_n003",
-          "review": "VALIDAR"
+          "next": "s04_n003"
         },
         {
           "id": "s04_n003",
@@ -664,8 +655,7 @@
           "locId": "EP02_S04_L003",
           "anim": "explain",
           "emotion": "calm",
-          "next": "s04_n004",
-          "review": "VALIDAR"
+          "next": "s04_n004"
         },
         {
           "id": "s04_n004",
@@ -675,7 +665,6 @@
           "anim": "explain",
           "emotion": "warm",
           "next": "s04_n005",
-          "review": "VALIDAR",
           "reviewNote": "Crítica: reforzada por aporte profesional; no todos los niños tienen un adulto seguro en casa.",
           "reviewPriority": "alta"
         },
@@ -687,7 +676,6 @@
           "anim": "wink",
           "emotion": "playful",
           "next": "s04_m001",
-          "review": "VALIDAR",
           "reviewNote": "¿El chiste confunde antes del Ep3? Alternativa: «Solo piensa en ellas.»"
         },
         {
@@ -724,7 +712,6 @@
               "speaker": "capi",
               "locId": "EP02_S04_F002",
               "anim": "smile",
-              "review": "VALIDAR",
               "reviewNote": "Crítica: no todos los niños tienen un adulto seguro en casa."
             }
           },
@@ -737,8 +724,7 @@
           "locId": "EP02_S04_L006",
           "anim": "point_self",
           "emotion": "warm",
-          "next": "s04_end",
-          "review": "VALIDAR"
+          "next": "s04_end"
         },
         {
           "id": "s04_end",
@@ -790,8 +776,7 @@
           "locId": "EP02_S05_L002",
           "anim": "celebrate",
           "emotion": "proud_calm",
-          "next": "s05_n003",
-          "review": "VALIDAR"
+          "next": "s05_n003"
         },
         {
           "id": "s05_n003",
