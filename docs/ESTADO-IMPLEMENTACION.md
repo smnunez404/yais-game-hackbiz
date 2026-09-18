@@ -133,6 +133,57 @@ GitHub). El proyecto de Vercel (`isla-de-los-acuerdos`) despliega solo desde
 automático de la integración de Git — no se forzó ningún deploy manual desde
 aquí.
 
+## Decorado ambiental: cuatro props que estaban registrados y sin usar
+
+Pedido de producto, con análisis previo por Constitución IV antes de tocar
+código (el pedido original incluía una isla temática nueva con diálogo de
+un NPC; eso queda fuera, ver más abajo). `content-guardian` no se convocó
+porque no hay una sola palabra de contenido nueva.
+
+`seedling`, `water_bottle`, `water_drop` y `recycling_bin` estaban en
+`PROP_ASSETS` desde T-001-02 (el kit completo de props ya sincronizado al
+build) pero ningún episodio ni pieza de decorado los dibujaba. Antes,
+`IslandScene.tsx` solo sabía plantar piezas del catálogo de mundo
+(`WORLD_ASSETS`: árboles, bancos, faros); se generalizó el tipo del
+decorado a `WorldAssetId | PropAssetId` y se añadió `modelUrlDeDecorado`
+para resolver el modelo en el catálogo que corresponda. Los cuatro se
+repartieron, uno por isla, en cuatro de las islas puramente decorativas
+del tercer anillo (`isla-cascada`, `isla-risco`, `isla-cueva`,
+`isla-nido`), por el mismo sistema de colocación y anticolisión que ya
+usa el resto del decorado (`colocacion.ts`) — no se añadió ningún
+mecanismo nuevo.
+
+**Lo que NO se implementó, y por qué:**
+
+- **Una isla temática de educación ambiental.** Es contenido pedagógico
+  nuevo fuera del alcance de SPEC-001 (prevención de ASI mediante
+  consentimiento y límites corporales). Necesita su propia spec y
+  revisión de Arianna antes de escribirse una sola línea (Constitución
+  IV), no una tarea de colocación de props.
+- **Un diálogo de NPC** ("cuida el medio ambiente" / "mantén limpio el
+  lugar"). Es texto nuevo que un niño leería o escucharía: mismo motivo
+  que el punto anterior. Se le señaló al usuario, además, que la frase
+  original que proponía ("si haces bien el trabajo, cuidarte a ti mismo
+  es como cuidar una planta") ata el autocuidado a hacer algo bien, lo
+  que roza la Constitución V (nada de valor condicionado a portarse
+  bien); es exactamente el tipo de matiz que le corresponde revisar a
+  Arianna, no al código.
+- **Una mecánica de "ordenar basura tirada".** Es una mecánica interactiva
+  nueva, no decorado; no se analizó ni se diseñó, así que no se
+  implementó.
+- Se corrigió, de paso, el comentario de cabecera de `PROP_ASSETS` en
+  `assets.ts`, que decía "cinco props sin dónde dibujarse" sin nombrarlos:
+  ahora dice explícitamente cuáles cuatro se usaron hoy y deja la cuenta
+  exacta de los que siguen sin uso para quien lea el archivo, no para
+  esta bitácora.
+
+Verificado con `npm run verify` completo y en vivo en el navegador: el
+mundo entero (19 islas, props nuevos incluidos) carga sin errores de
+consola y sin que el límite de error retire la escena a 2D. No se
+comprobó visualmente cada una de las cuatro islas nuevas por separado
+(quedan lejos del punto de partida); se confirmó que no rompieron nada,
+no que se vean exactamente como se describen aquí.
+
 ## Corrección de estado — 2026-09-18
 
 Esta sección **manda sobre lo que digan las secciones de más abajo**. Las

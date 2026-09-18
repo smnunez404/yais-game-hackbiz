@@ -193,10 +193,15 @@ export const WORLD_ASSETS: Readonly<Record<WorldAssetId, WorldAsset>> = {
  * dibuja no debe pesar en el presupuesto de aula. El argumento era bueno
  * mientras el kit venía sin optimizar; ahora los veinte props juntos pesan
  * 0,92 MiB (variante v002, -38,6 %) y la allowlist completa cabe en 24,36 MiB
- * de los 25 de presupuesto. Los cinco que siguen sin tener dónde dibujarse
- * están marcados en sus comentarios y en `PROP_IDS` de
- * `scripts/sync-runtime-assets.mjs`: son los primeros en salir si el
- * presupuesto vuelve a apretar.
+ * de los 25 de presupuesto original (hoy el techo es 80, ver el comentario
+ * de `PRESUPUESTO_BYTES` en `scripts/sync-runtime-assets.mjs`). Que un id
+ * esté aquí no significa que ya se dibuje en algún sitio: `seedling`,
+ * `water_bottle`, `water_drop` y `recycling_bin` se sumaron como decorado
+ * ambiental en `IslandScene.tsx` recién el 2026-09-18 (ver
+ * `docs/ESTADO-IMPLEMENTACION.md`); antes de eso, y todavía para el resto de
+ * los que no aparecen en `TEMAS_POR_ISLA` ni en un minijuego, están
+ * registrados y sincronizados pero sin usar en ninguna pantalla — son los
+ * primeros en salir si el presupuesto vuelve a apretar.
  *
  * Igual que en el mundo, cada comentario trae la caja medida en el espacio del
  * GLB (Y arriba): `ancho X x alto Y x largo Z` y el rango vertical respecto al

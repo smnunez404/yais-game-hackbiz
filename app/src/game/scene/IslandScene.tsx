@@ -28,7 +28,7 @@ import { useGLTF } from "@react-three/drei";
 import { useMemo } from "react";
 import type { Object3D } from "three";
 
-import { WORLD_ASSETS, type WorldAssetId } from "../../shared/assets";
+import { PROP_ASSETS, WORLD_ASSETS, type PropAssetId, type WorldAssetId } from "../../shared/assets";
 import { ENCUENTROS_DE_LA_ISLA } from "../../shared/encuentros";
 import {
   puntoLibreMasCercano,
@@ -96,6 +96,21 @@ function idDelModeloDeIsla(isla: IslaDelMundo): WorldAssetId {
   return isla.radioCaminable <= UMBRAL_ISLA_PEQUEÑA ? "island_small" : "island_large";
 }
 
+/**
+ * Un id de decorado puede venir del kit del mundo (`WORLD_ASSETS`: árboles,
+ * bancos, faros) o del kit de props (`PROP_ASSETS`: objetos más pequeños,
+ * como la plántula o el contenedor de reciclaje que se suman aquí como
+ * decorado ambiental puro — sin texto, sin mecánica, igual que un árbol).
+ * Los dos catálogos no comparten ningún id, así que basta con mirar en cuál
+ * de los dos existe la clave para saber de dónde sale el modelo.
+ */
+type IdDeDecorado = WorldAssetId | PropAssetId;
+
+function modelUrlDeDecorado(id: IdDeDecorado): string {
+  if (id in WORLD_ASSETS) return WORLD_ASSETS[id as WorldAssetId].modelUrl;
+  return PROP_ASSETS[id as PropAssetId].modelUrl;
+}
+
 function escalaDeIsla(isla: IslaDelMundo): number {
   return idDelModeloDeIsla(isla) === "island_small"
     ? isla.escala * ESCALA_ISLA_PEQUEÑA_RESPECTO_GRANDE
@@ -103,7 +118,7 @@ function escalaDeIsla(isla: IslaDelMundo): number {
 }
 
 interface Pieza {
-  readonly id: WorldAssetId;
+  readonly id: IdDeDecorado;
   readonly clave: string;
   readonly position: Posicion;
   readonly rotationY?: number;
@@ -241,7 +256,7 @@ function zonaDeSendero(pieza: Pieza): ZonaProhibida {
 // --- Decorado propio de cada isla: lo que hace que se reconozca ---
 
 interface DecorPropuesto {
-  readonly id: WorldAssetId;
+  readonly id: IdDeDecorado;
   readonly angulo: number;
   readonly distancia: number;
   readonly scale?: number;
@@ -352,19 +367,31 @@ const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
   "isla-cascada": [
     { id: "stairs_three", angulo: -1.9, distancia: 0.4, rotationY: -1.9 },
     { id: "tree_round", angulo: 0.9, distancia: 0.6, scale: 0.75 },
+    // Cuatro props del kit de reciclaje/cuidado (`PROP_ASSETS`) que estaban
+    // registrados desde T-001-02 y nunca se dibujaban en ningún sitio: pedido
+    // explícito para sumar decorado con tema ambiental al archipiélago, sin
+    // texto y sin mecánica nueva (Constitución IV: nada que un niño lea o
+    // escuche puede salir de aquí sin pasar antes por Arianna). Se reparten
+    // uno por isla, en las que hoy son puramente decorativas del tercer
+    // anillo, para que se vean como parte del paisaje y no como un montón en
+    // un solo sitio.
+    { id: "recycling_bin", angulo: 1.7, distancia: 0.45, rotationY: -0.6 },
   ],
   "isla-risco": [
     { id: "lighthouse", angulo: 0, distancia: 0.7, scale: 0.8 },
     { id: "rock_large", angulo: 2.2, distancia: 0.55 },
+    { id: "water_bottle", angulo: -1.3, distancia: 0.5 },
   ],
   "isla-cueva": [
     { id: "rock_large", angulo: -0.6, distancia: 0.6 },
     { id: "rock_small", angulo: 1.5, distancia: 0.55 },
     { id: "tree_round", angulo: 2.8, distancia: 0.5, scale: 0.6 },
+    { id: "water_drop", angulo: -2.4, distancia: 0.45 },
   ],
   "isla-nido": [
     { id: "tree_round", angulo: 0.6, distancia: 0.6, scale: 0.85 },
     { id: "flower_bush", angulo: -1.2, distancia: 0.5 },
+    { id: "seedling", angulo: 2.2, distancia: 0.5 },
   ],
   "isla-sendero": [
     { id: "palm", angulo: -0.3, distancia: 0.6, scale: 0.7 },
@@ -466,7 +493,7 @@ const PIEZAS: readonly Pieza[] = [
  * modelo por escena").
  */
 interface PiezaDelMundoProps {
-  readonly id: WorldAssetId;
+  readonly id: IdDeDecorado;
   readonly position: Posicion;
   readonly rotationY?: number | undefined;
   readonly scale?: number | undefined;
@@ -474,7 +501,7 @@ interface PiezaDelMundoProps {
 
 function PiezaDelMundo({ id, position, rotationY = 0, scale = 1 }: PiezaDelMundoProps) {
   // Sin decodificador Draco desde un CDN: ver `Character.tsx`.
-  const { scene } = useGLTF(WORLD_ASSETS[id].modelUrl, false);
+  const { scene } = useGLTF(modelUrlDeDecorado(id), false);
   const copia = useMemo<Object3D>(() => scene.clone(true), [scene]);
 
   return (
