@@ -41,6 +41,98 @@ está sin hacer.
 El informe de la verificación de extremo a extremo, con las medidas tomadas y
 las que faltan, vive en [QA-VERTICAL-SLICE.md](./QA-VERTICAL-SLICE.md).
 
+## Sesión de correcciones jugando en celular — 2026-09-18 (posterior a la de más abajo)
+
+A diferencia de la sección "Corrección de estado — 2026-09-18" que sigue,
+esta sí corre `npm run verify` de punta a punta (317 tests, build limpio) y
+verifica varios de los cambios en vivo en el navegador antes de escribirlos
+aquí. Cuatro reportes de una persona jugando el build desplegado en un
+celular real, cada uno con causa raíz confirmada por lectura de código y
+tres de ellos también en vivo:
+
+- **Salto invisible al caminar hacia adelante.** La cámara perseguía la
+  altura real del personaje (salto incluido) en vez del suelo bajo sus pies;
+  con la interpolación de seguimiento, la cámara subía casi al mismo ritmo
+  que el salto y lo anulaba visualmente. Corregido en
+  `app/src/game/scene/GameCanvas.tsx`. Verificado en vivo: sosteniendo W y
+  saltando, el personaje se separa con claridad del suelo.
+- **Hay que girar la cámara a mano todo el rato.** El personaje ya giraba
+  para mirar hacia donde camina en cualquier ángulo; la cámara no. Cualquier
+  entrada no perfectamente cardinal (normal en un joystick) la dejaba cada
+  vez más desalineada. Ahora la cámara se reacomoda sola, despacio, detrás
+  de hacia dónde se camina, pero nunca si alguien la está girando a mano ni
+  con `prefers-reduced-motion` activo (AC-7). `app/src/game/scene/camara.ts`,
+  `useControlDelJugador.ts`. Verificado en vivo con W+D sostenidos.
+- **Personajes que desaparecen de golpe o vuelven a aparecer.**
+  `EscenaDelEpisodio` desmontaba el `&lt;Canvas&gt;` entero cada vez que el nodo
+  actual no tenía a nadie en escena, y lo remontaba de cero en el siguiente
+  nodo con reparto, aunque la escena no hubiera cambiado. Ahora el lienzo
+  queda montado y simplemente no dibuja a nadie ese cuadro; se añadió además
+  una transición de fundido (anulada bajo `prefers-reduced-motion`) para que
+  el cambio entre el mundo y un episodio —que siguen siendo dos lienzos
+  React distintos; unificarlos es un arreglo mayor no hecho aquí— se lea
+  como transición y no como corte. No verificado en vivo (requiere recorrer
+  un episodio completo).
+- **Cuadro de diálogo sobrecargado en un minijuego.** La barra inferior
+  mostraba a la vez el texto de pausa, el selector de edad y el botón de
+  volver al mapa durante un minijuego, con solo dos opciones grandes debajo.
+  Ya existía la reducción correcta para las decisiones del episodio
+  (`vista.kind === "choice"`); ahora también cubre `"minigame"`. Verificado
+  con tests contra el contenido real de `ep02-circulo.json`.
+- **Bancos y otro decorado solapados en las islas.** `decoradoDeIsla` no
+  sabía qué pieza ya había colocado en la misma isla, así que dos piezas
+  podían caer una encima de otra. Confirmado con números reales antes del
+  arreglo: en isla-piedra, un árbol y un banco quedaban a 0.029 unidades de
+  distancia. Corregido con un acumulador de zonas ya ocupadas, local a cada
+  isla. Reverificado: cero solapes en las 19 islas.
+- **Botón "Hablar con..." tapado por el joystick.** Confirmado con una
+  captura real de celular en vertical. `.mundo__oferta` caía al mismo borde
+  inferior donde flotan los controles táctiles; ahora se reserva el espacio
+  real que ocupan. Verificado en vivo en viewport móvil (375×812): el botón
+  "Hablar con Profe Clara" se ve completo, separado del joystick.
+- **Presupuesto de bytes subido de 25 a 80 MiB**, por instrucción explícita
+  del usuario (ancho de banda de sobra en esta sesión de desarrollo, no
+  necesariamente en el aula donde se use el juego). No revierte la
+  optimización v001→v002 de los personajes, que no pierde calidad; solo deja
+  de frenar lo que se añada después. El total servido no cambió (24.36 MiB).
+
+**Segunda ronda de la misma sesión — diálogo y minijuegos en horizontal.**
+Reportado con capturas reales: el cuadro de diálogo tapaba al personaje o se
+comía casi toda la pantalla al jugar en horizontal (landscape) en un celular.
+Causa raíz: `juego.css` solo tenía un punto de quiebre responsivo por ANCHO
+(`max-width: 30rem`); ninguno reaccionaba a poca ALTURA disponible, que es lo
+que falta en landscape aunque el ancho sobre. Dos agentes en paralelo —uno
+para el diálogo/decisiones (`.shell--juego .dialogo*`, `.personaje*`,
+`.decisiones*`), otro para los minijuegos (`.minijuego*`)— llegaron por
+separado al mismo punto de quiebre, `@media (max-height: 30rem)` (~480px):
+retrato y texto más chicos, padding reducido, listas largas con scroll
+interno acotado (`max-block-size` + `overflow-y: auto`) sin esconder nunca el
+control de continuar/parar. Ningún minijuego tenía medidas fijas en píxeles
+que corregir; el cambio fue solo CSS.
+
+Verificado: `npm run verify` completo (317 tests, build limpio) y en vivo en
+el navegador con un viewport de 780×360 (celular en horizontal): se jugó el
+episodio 1 desde el inicio hasta varias líneas de diálogo — el panel se ve
+compacto, con el mundo y el cielo visibles arriba, sin taparlo. No se llegó
+a probar en vivo una pantalla de decisión ni un minijuego en este mismo
+viewport (comparten las mismas clases y el mismo punto de quiebre que la
+línea de diálogo ya verificada, pero es lectura de código, no una captura
+propia de esos dos casos).
+
+No implementado, por ser un cambio de diseño mayor y no un arreglo de
+tamaño: la idea de mostrar burbujas de diálogo alternadas por personaje
+(izquierda/derecha) en vez de un solo cuadro central, que el usuario
+preguntó si convendría. Ambos agentes coincidieron en que es razonable a
+mediano plazo pero necesita su propia spec (qué pasa con más de dos
+personajes, con un narrador sin retrato, y revisión de accesibilidad de
+a11y-perf-reviewer), no una extensión de este arreglo.
+
+Commits: `fb9defb`, `8a68143`, `4066e75`, `a784fa7` (rama `main`, subidos a
+GitHub). El proyecto de Vercel (`isla-de-los-acuerdos`) despliega solo desde
+`main`, así que estos cambios llegan a producción con el siguiente push
+automático de la integración de Git — no se forzó ningún deploy manual desde
+aquí.
+
 ## Corrección de estado — 2026-09-18
 
 Esta sección **manda sobre lo que digan las secciones de más abajo**. Las

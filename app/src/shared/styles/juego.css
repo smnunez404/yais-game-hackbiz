@@ -936,3 +936,180 @@
     inline-size: 100%;
   }
 }
+
+/* --- Pantallas de poca altura (celular en horizontal) --------------------
+
+   Bug reportado jugando en un celular real girado a horizontal: un iPhone
+   en landscape mide unos 812x375px lógicos. 375px de alto es MENOS que los
+   480px (30rem) que ya usa el punto de quiebre de arriba, pero su ANCHO
+   (~54rem) está muy por encima de los 30rem que ese punto de quiebre mira,
+   así que NINGUNA de esas reglas se aplicaba. `.shell--juego` reserva
+   `min-block-size: calc(100dvh - ...)` con `justify-content: flex-end`, así
+   que el panel se apila contra el borde inferior con su tamaño "de
+   escritorio": retrato de 4.5rem, el padding y el gap de siempre, texto en
+   `--fuente-tamano-subtitulo` (que crece con `vw` pero nunca se achica con
+   poca altura) y un hueco fijo de 4rem arriba para el encabezado. El
+   resultado: un panel demasiado alto para los ~350px disponibles, que tapa
+   al personaje 3D que está detrás.
+
+   Se usa `max-height` y no `orientation: landscape`: el problema real es
+   cuánta altura hay disponible, no la orientación del dispositivo. Una
+   tablet en horizontal con multitarea, o una ventana de escritorio baja y
+   ancha, tienen el mismo problema sin ser "un teléfono en horizontal" en
+   sentido estricto. 30rem (480px) cubre con margen los altos lógicos
+   típicos de un celular en horizontal (~360-430px en los tamaños más
+   comunes) sin afectar una laptop o un proyector, que casi nunca bajan de
+   600px de alto.
+
+   A esta altura SÍ conviene mantener el retrato al lado del texto —la
+   retícula de dos columnas que `.dialogo` ya usa por defecto—, en vez de
+   apilarlo como hace el punto de quiebre de ancho angosto de arriba: aquí
+   sobra ancho (la pantalla sigue midiendo ~54rem) y lo que falta es alto,
+   así que apilar sería justo lo contrario de lo que hace falta. Por eso
+   este bloque no toca `grid-template-columns` de `.dialogo`: se queda en
+   las dos columnas de siempre y solo se encoge lo que hay dentro. */
+@media (max-height: 30rem) {
+  .shell--juego {
+    /* El hueco reservado para el encabezado flotante (el distintivo de
+       borrador —hoy apagado, ver `DistintivoBorrador.tsx`— y un título que
+       ya viaja `visualmente-oculto`) puede seguir siendo bastante más chico
+       que 4rem: la pastilla del distintivo, cuando se enciende, mide menos
+       que eso. Se deja 2.5rem, con aire de sobra, para que AC-10 —el
+       distintivo nunca queda tapado— se siga cumpliendo si se reactiva. */
+    padding-block-start: 2.5rem;
+  }
+
+  .shell--juego .episodio__contenido {
+    gap: var(--espacio-1);
+    padding: var(--espacio-1);
+  }
+
+  /* Antes: 4.5rem, el tamaño "de escritorio" que ya usa `.shell--juego` por
+     defecto (ni siquiera el de por defecto sin inmersión, 8rem). Ahora:
+     2.75rem, para que el panel entero —retrato, nombre y texto— quepa en
+     dos o tres líneas de alto en vez de ocho. El personaje ya está en la
+     escena 3D a tamaño completo detrás; este retrato solo hace falta como
+     referencia de quién habla cuando el personaje no tiene modelo. */
+  .shell--juego .personaje__retrato {
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+  }
+
+  /* Sin arte sincronizado (Luna, Don Beto...) el retrato es una inicial
+     dentro de la caja: a este tamaño de caja, `--fuente-tamano-titulo`
+     (clamp hasta 2.75rem) desborda. Un tamaño fijo y chico cabe con aire. */
+  .shell--juego .personaje__retrato--sin-arte {
+    font-size: 1.25rem;
+  }
+
+  /* `--fuente-tamano-subtitulo` crece con el ancho del viewport (`vw`) pero
+     nunca se achica con poca altura: en un celular en horizontal el ancho
+     sobra (~54rem) y el alto falta, así que este texto puede seguir siendo
+     tan grande como en escritorio y aun así comerse la pantalla entera. Se
+     fija un tamaño menor solo aquí, sin tocar el token compartido por el
+     resto de la app (cubre tanto la línea de diálogo como la pregunta de
+     una decisión: las dos comparten la clase `.dialogo__texto`). */
+  .shell--juego .dialogo__texto {
+    font-size: 1.125rem;
+  }
+
+  .shell--juego .decisiones__pregunta {
+    margin-block-end: var(--espacio-1);
+  }
+
+  /* Con hasta cinco opciones, la retícula de `.decisiones__lista` puede
+     necesitar más de una fila incluso con el ancho de sobra que da el modo
+     horizontal. Se le pone un tope de altura y un scroll propio en vez de
+     dejarla crecer sin límite: quien elige puede desplazarse dentro del
+     panel sin que el panel entero se coma la pantalla. No cambia el foco ni
+     el orden de tabulación de las tarjetas, solo las recorta visualmente
+     hasta que se hace scroll hacia ellas. */
+  .shell--juego .decisiones__lista {
+    max-block-size: 30dvh;
+    overflow-y: auto;
+  }
+}
+
+/* --- Minijuegos en poca altura (celular en horizontal) -------------------
+
+   El único punto de quiebre de arriba solo mira el ancho (`max-width: 30rem`).
+   Un celular en horizontal —por ejemplo 812x375 px lógicos— tiene ~54rem de
+   ancho, muy por encima de 30rem, así que ninguna de esas reglas se aplica
+   aunque el alto disponible (375 px ≈ 23.4rem, y menos todavía tras
+   descontar la barra del navegador) sea el que realmente aprieta.
+
+   Los minijuegos son donde más se nota: a diferencia de una línea de diálogo
+   simple, suelen tener una tarjeta con la pregunta, varias tarjetas de
+   respuesta o una lista de zonas, y los controles de continuar/parar. Ese
+   panel, apoyado al fondo de `.shell--juego` (que no se toca desde aquí),
+   puede crecer más alto que la pantalla y tapar el mundo o el personaje 3D
+   que hay detrás.
+
+   Se usa `max-height` sin exigir `orientation: landscape` a propósito: lo
+   que aprieta es el alto disponible, no el nombre que el navegador le dé a
+   la orientación. Una ventana de escritorio angosta y baja, o una vista
+   dividida en una tablet, tienen el mismo problema y merecen el mismo
+   ajuste; exigir además `orientation: landscape` los habría dejado fuera sin
+   ninguna ganancia real. 30rem (480px) deja margen por encima de los
+   ~23-24rem lógicos de un iPhone en horizontal y de los ~21rem que quedan en
+   Android tras la barra del sistema, así que el ajuste entra antes de que el
+   aprieto real empiece. */
+@media (max-height: 30rem) {
+  .minijuego {
+    gap: var(--espacio-1);
+  }
+
+  /* Mismo valor que usa el bloque de arriba para `.shell--juego .dialogo__texto`
+     a esta misma altura: la tarjeta —pregunta o ficha— es el mismo tipo de
+     texto que una línea de diálogo o la pregunta de una decisión, así que se
+     achica al mismo tamaño en vez de a uno distinto por casualidad de
+     especificidad de selector. `--fuente-tamano-subtitulo` crece con el
+     ancho del viewport (`vw`) pero nunca con la altura, así que a esta
+     altura seguiría pidiendo hasta 1.75rem aunque sobren solo 23-24rem de
+     alto en total. */
+  .minijuego .dialogo__texto {
+    font-size: 1.125rem;
+    line-height: var(--fuente-interlineado);
+  }
+
+  .minijuego .dialogo__hablante {
+    margin-block-end: 0;
+    font-size: 0.875rem;
+  }
+
+  .minijuego__respuesta,
+  .minijuego__controles {
+    gap: var(--espacio-1);
+  }
+
+  /* La lista de tarjetas —fichas, respuestas, tablas del puente, sitios del
+     círculo— es la que más crece: con varias filas puede pedir más alto que
+     toda la pantalla. Se acota su alto y se deja un scroll interno acotado
+     dentro del panel en vez de dejar que empuje `.minijuego` entero fuera de
+     la vista. El control de continuar/parar vive fuera de esta lista (es un
+     hermano, no un hijo, en los seis minijuegos), así que se queda siempre
+     visible debajo y nunca hace falta desplazar la página para alcanzarlo. */
+  .minijuego .decisiones__lista {
+    gap: var(--espacio-1);
+    max-block-size: 40dvh;
+    overflow-y: auto;
+  }
+
+  /* Mismo motivo que el punto de quiebre de ancho de arriba: icono a la
+     izquierda, texto a la derecha, en vez de apiladas. Apiladas, cada
+     tarjeta pide más alto del que sobra cuando el alto entero de la pantalla
+     son 23-24rem. */
+  .minijuego .boton--opcion {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--espacio-1);
+    padding: var(--espacio-1);
+    text-align: start;
+  }
+
+  .minijuego .boton--opcion .opcion__icono {
+    flex: 0 0 auto;
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+}
