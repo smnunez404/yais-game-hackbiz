@@ -19,3 +19,6 @@ app/public/assets/
 .claude/settings.local.json
 # Configuración del servidor de desarrollo: el puerto depende de la máquina.
 .claude/launch.json
+
+# Vinculación local con Vercel (IDs de proyecto y credenciales de la CLI).
+.vercel/
