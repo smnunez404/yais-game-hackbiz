@@ -70,6 +70,32 @@ configuración es señal fiable.
 
 ## 3. `vercel.json`
 
+**Existe uno en la raíz del repositorio, y es deliberado.** Declara el
+comando de build y el directorio de salida para que la configuración
+correcta sea la que viaja con el código y no algo que alguien tenga que
+acordarse de poner a mano en el panel de Vercel:
+
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "app/dist",
+  "installCommand": "npm ci",
+  "framework": null
+}
+```
+
+`framework: null` es la parte importante. Sin eso, Vercel autodetecta Vite,
+ignora que esto es un workspace npm y corre `vite build` sin
+`npm run sync:assets`; como `app/public/assets/` está en `.gitignore`, se
+desplegaría el juego **sin un solo modelo 3D**. Es el fallo más probable de
+este proyecto y este archivo existe para evitarlo.
+
+Ojo: un `vercel.json` en la raíz solo se lee si el **Root Directory** del
+proyecto en Vercel es la raíz del repositorio. Si alguien lo cambia a
+`app/`, este archivo deja de aplicarse y vuelve el problema.
+
+
+
 **No hace falta hoy.** La app es una sola página: no hay `react-router` ni ninguna
 ruta de cliente en `app/src`, así que no se necesita la reescritura SPA. Vite ya
 produce hashes de contenido para JS/CSS y Vercel cachea `/assets/*` por defecto.

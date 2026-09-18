@@ -4,10 +4,14 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
-  it("muestra siempre el distintivo de borrador no validado", () => {
+  it("ya no muestra el distintivo de borrador", () => {
+    // Se apagó el 2026-09-18, con el guion aprobado y a petición de
+    // producto. El motivo sigue explicado en `DistintivoBorrador.tsx`, junto
+    // con lo que sigue sin cumplirse: esto no se ha probado con niñas y
+    // niños (Constitución IX).
     render(<App />);
 
-    expect(screen.getByText("Borrador no validado")).toBeVisible();
+    expect(screen.queryByText("Borrador no validado")).not.toBeInTheDocument();
   });
 
   it("expone un encabezado principal", () => {

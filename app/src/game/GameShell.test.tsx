@@ -119,9 +119,8 @@ describe("GameShell — arranque", () => {
   it("entra directo al mundo, sin pantalla de inicio ni menú", () => {
     render(<GameShell />);
 
-    // Lo primero es el sitio, no un menú: el mundo, su distintivo y la ruta
-    // 2D para llegar a una isla sin caminar (AC-8).
-    expect(screen.getByText(TEXTOS_UI.distintivoBorrador)).toBeVisible();
+    // Lo primero es el sitio, no un menú: el mundo y la ruta 2D para llegar
+    // a una isla sin caminar (AC-8).
     expect(screen.getByText(TEXTOS_UI.mundo.irAUnaIsla)).toBeVisible();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(TEXTOS_UI.mundo.region);
   });
@@ -152,10 +151,15 @@ describe("GameShell — arranque", () => {
 });
 
 describe("GameShell — el saludo de Capi", () => {
-  it("mantiene el distintivo de borrador visible durante el juego (AC-10)", async () => {
+  it("el distintivo de borrador está apagado, y se puede volver a encender", async () => {
+    // AC-10 pedía el distintivo mientras el contenido no estuviera aprobado.
+    // Arianna lo aprobó el 2026-09-18 y se apagó a petición de producto. El
+    // componente sigue existiendo con su constante: este test vigila que
+    // apagarlo fuera una decisión y no un borrado accidental, y se cae el día
+    // que alguien lo vuelva a encender sin actualizar lo que AC-10 espera.
     await empezarEn(SALUDO.escena);
 
-    expect(screen.getByText(TEXTOS_UI.distintivoBorrador)).toBeVisible();
+    expect(screen.queryByText(TEXTOS_UI.distintivoBorrador)).not.toBeInTheDocument();
   });
 
   it("se completa solo con teclado y sin WebGL (AC-6, AC-8)", async () => {
