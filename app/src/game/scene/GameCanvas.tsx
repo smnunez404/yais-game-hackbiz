@@ -16,14 +16,14 @@
 // hay que leer, elegir o escuchar vive en la interfaz 2D, que es la ruta
 // accesible y la que sigue funcionando sola (AC-8).
 
-import { Canvas, type ThreeEvent } from "@react-three/fiber";
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Group, WebGLRenderer } from "three";
 
 import type { CharacterId } from "../../shared/assets";
 import { Character } from "./Character";
 import type { EstadoDeEscena } from "./estado-de-escena";
 import { IslandScene } from "./IslandScene";
-import { RADIO_CAMINABLE } from "./control-del-jugador";
 import { destinoDe } from "./posiciones";
 import { useControlDelJugador } from "./useControlDelJugador";
 
@@ -47,15 +47,58 @@ interface GameCanvasProps {
  */
 const PERSONAJE_DEL_JUGADOR: CharacterId = "capi";
 
-/** A dónde mira la cámara: al claro, no al horizonte. */
-const PUNTO_DE_MIRA: readonly [number, number, number] = [0, 0.7, 0.2];
+/**
+ * Distancia de la cámara al personaje. Está lo bastante atrás y alto para que
+ * se vean la isla donde se está y la siguiente, sin que el faro (4,65 de
+ * alto) se salga por arriba.
+ */
+const DISTANCIA_DE_CAMARA: readonly [number, number, number] = [0, 4.2, 8.2];
 
 /**
- * Cámara fija. Está lo bastante atrás para que quepan la isla entera (6,3 de
- * ancho) y el faro (4,65 de alto) sin recortes, y lo bastante alta para que
- * se vea el suelo del claro donde conversan los personajes.
+ * A qué altura del personaje mira la cámara. Baja a propósito: la cámara
+ * apunta casi a sus pies, así que el personaje queda por encima del centro de
+ * la pantalla y no lo tapa el panel de diálogo, que se apoya abajo.
  */
-const POSICION_DE_CAMARA: readonly [number, number, number] = [0, 3.4, 8.6];
+const ALTURA_DE_MIRA = 0.15;
+
+/** Cuánto de la distancia pendiente recorre la cámara por segundo. */
+const SUAVIDAD_DE_CAMARA = 3.5;
+
+/**
+ * Cámara que sigue al personaje. Va por detrás, sin girar nunca alrededor del
+ * mundo: la orientación es siempre la misma, así que no hay vértigo ni
+ * desorientación, y con `prefers-reduced-motion` no se mueve en absoluto
+ * porque el personaje tampoco (AC-7).
+ */
+function CamaraQueSigue({
+  objetivo,
+  menosMovimiento,
+}: {
+  readonly objetivo: React.RefObject<Group | null>;
+  readonly menosMovimiento: boolean;
+}) {
+  useFrame(({ camera }, delta) => {
+    const seguido = objetivo.current;
+    if (!seguido) return;
+
+    const destinoX = seguido.position.x + DISTANCIA_DE_CAMARA[0];
+    const destinoY = DISTANCIA_DE_CAMARA[1];
+    const destinoZ = seguido.position.z + DISTANCIA_DE_CAMARA[2];
+
+    if (menosMovimiento) {
+      camera.position.set(destinoX, destinoY, destinoZ);
+    } else {
+      const avance = Math.min(1, SUAVIDAD_DE_CAMARA * delta);
+      camera.position.x += (destinoX - camera.position.x) * avance;
+      camera.position.y += (destinoY - camera.position.y) * avance;
+      camera.position.z += (destinoZ - camera.position.z) * avance;
+    }
+
+    camera.lookAt(seguido.position.x, seguido.position.y + ALTURA_DE_MIRA, seguido.position.z);
+  });
+
+  return null;
+}
 
 export default function GameCanvas({
   escena,
@@ -63,6 +106,32 @@ export default function GameCanvas({
   alPerderContexto,
 }: GameCanvasProps) {
   const [enMovimiento, setEnMovimiento] = useState<readonly CharacterId[]>([]);
+  /** El `Group` del personaje que se controla, para que la cámara lo siga. */
+  const grupoDelJugador = useRef<Group | null>(null);
+  const renderizador = useRef<WebGLRenderer | null>(null);
+
+  // El aviso de contexto perdido se conecta en un efecto, no al crear el
+  // lienzo, para poder desconectarlo al desmontar. React limpia los efectos
+  // antes de quitar el nodo del DOM, así que el `webglcontextlost` que el
+  // navegador dispara al destruir el lienzo ya no llega: sin esto, cualquier
+  // desmontaje —o una recarga en caliente— retiraba la escena para siempre.
+  useEffect(() => {
+    const lienzo = renderizador.current?.domElement;
+    if (!lienzo) return;
+
+    function alPerder(evento: Event): void {
+      // Sin `preventDefault` el navegador no intentaría restaurarlo; aquí no
+      // se intenta restaurar nada, se retira la escena y la sesión continúa
+      // en 2D, que es lo que protege AC-8.
+      evento.preventDefault();
+      alPerderContexto();
+    }
+
+    lienzo.addEventListener("webglcontextlost", alPerder);
+    return () => {
+      lienzo.removeEventListener("webglcontextlost", alPerder);
+    };
+  }, [alPerderContexto]);
 
   const alCambiarActividad = useCallback((characterId: CharacterId, activo: boolean) => {
     setEnMovimiento((previos) => {
@@ -108,16 +177,9 @@ export default function GameCanvas({
   return (
     <Canvas
       frameloop={hayMovimiento ? "always" : "demand"}
-      camera={{ position: [...POSICION_DE_CAMARA], fov: 38 }}
-      onCreated={({ camera, gl }) => {
-        camera.lookAt(...PUNTO_DE_MIRA);
-        gl.domElement.addEventListener("webglcontextlost", (evento) => {
-          // Sin `preventDefault` el navegador no intentará restaurarlo; aquí
-          // no se intenta restaurar nada, se retira la escena y la sesión
-          // continúa en 2D, que es lo que protege AC-8.
-          evento.preventDefault();
-          alPerderContexto();
-        });
+      camera={{ position: [...DISTANCIA_DE_CAMARA], fov: 42, far: 80 }}
+      onCreated={({ gl }) => {
+        renderizador.current = gl;
       }}
       // `powerPreference: "low-power"` y sin antialias: el objetivo es una
       // laptop de aula, no una estación gráfica. Se medirá antes de subir.
@@ -126,6 +188,8 @@ export default function GameCanvas({
     >
       <hemisphereLight intensity={1.1} groundColor="#c8b89a" />
       <directionalLight position={[3, 5, 2]} intensity={1.4} />
+
+      <CamaraQueSigue objetivo={grupoDelJugador} menosMovimiento={menosMovimiento} />
 
       <Suspense fallback={null}>
         <IslandScene environment={escena.environment} />
@@ -139,7 +203,7 @@ export default function GameCanvas({
             más cercano, así que el control nunca parece roto. */}
         {menosMovimiento ? null : (
           <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]} onPointerDown={alTocarElSuelo}>
-            <circleGeometry args={[RADIO_CAMINABLE * 5, 48]} />
+            <circleGeometry args={[40, 48]} />
             <meshBasicMaterial transparent opacity={0} depthWrite={false} />
           </mesh>
         )}
@@ -154,6 +218,7 @@ export default function GameCanvas({
             sessionVars={escena.sessionVars}
             menosMovimiento={menosMovimiento}
             comandoDelJugador={characterId === PERSONAJE_DEL_JUGADOR ? comando : undefined}
+            grupoCompartido={characterId === PERSONAJE_DEL_JUGADOR ? grupoDelJugador : undefined}
             alCambiarActividad={alCambiarActividad}
           />
         ))}
@@ -161,3 +226,4 @@ export default function GameCanvas({
     </Canvas>
   );
 }
+

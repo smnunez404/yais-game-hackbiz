@@ -19,7 +19,6 @@ interface PantallaDeCierreProps {
   readonly ageMode: AgeMode;
   readonly texto: (locId: LocId) => string;
   readonly alVolverAJugar: () => void;
-  readonly alVolverAlInicio: () => void;
 }
 
 export function PantallaDeCierre({
@@ -27,7 +26,6 @@ export function PantallaDeCierre({
   ageMode,
   texto,
   alVolverAJugar,
-  alVolverAlInicio,
 }: PantallaDeCierreProps) {
   const debrief = vista.node.debriefScreen;
   const preguntas = (debrief?.adultQuestionsLocIds ?? []).filter((locId) =>
@@ -83,13 +81,6 @@ export function PantallaDeCierre({
           onClick={alVolverAJugar}
         >
           {TEXTOS_UI.cierre.volverAJugar}
-        </button>
-        <button
-          type="button"
-          className="objetivo-tactil boton boton--secundario"
-          onClick={alVolverAlInicio}
-        >
-          {TEXTOS_UI.dialogo.volverAlInicio}
         </button>
       </div>
     </section>

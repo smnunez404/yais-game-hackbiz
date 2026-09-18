@@ -1,13 +1,14 @@
-// Shell del juego (T-001-05).
+// Shell del juego (T-001-05, replanteado en T-001-06).
 //
-// Tres estados y nada más: contenido que no valida, pantalla de inicio y
-// episodio en curso. El distintivo de borrador se dibuja aquí, fuera del
-// conmutador, para que esté en las tres (AC-10, Constitución IV).
+// Dos estados: contenido que no valida, y episodio en curso. Se entra directo
+// al juego, sin pantalla de inicio. El distintivo de borrador se dibuja aquí,
+// fuera del conmutador, para que esté en los dos (AC-10, Constitución IV).
 //
-// El modo de edad se elige antes de empezar y no se puede cambiar a mitad de
-// episodio: cambiarlo alteraría qué nodos y opciones son visibles en medio de
-// una conversación (AC-3). Quien acompaña lo elige por el grupo; no se guarda
-// nada, ni aquí ni en el dispositivo.
+// El modo de edad vive aquí porque decide qué nodos y opciones existen (AC-3).
+// Lo elige quien acompaña desde la barra de abajo, y cambiarlo reinicia el
+// episodio: alterar a media conversación qué opciones se ven sería peor que
+// volver a empezar. No se guarda en ningún sitio, ni aquí ni en el
+// dispositivo.
 
 import { useState } from "react";
 
@@ -25,7 +26,6 @@ const MODOS_DE_EDAD: readonly { readonly id: AgeMode; readonly etiqueta: string 
 
 export default function GameShell() {
   const [ageMode, setAgeMode] = useState<AgeMode>("6-8");
-  const [jugando, setJugando] = useState(false);
 
   // AC-1: si el contenido no valida, un error de desarrollo legible en vez de
   // una pantalla en blanco. La app no arranca el episodio en ese caso.
@@ -49,50 +49,42 @@ export default function GameShell() {
   const titulo = episodio.localization[episodio.defaultLocale]?.[episodio.titleLocId] ?? episodio.slug;
 
   return (
-    <main className="shell">
-      <header className="shell__encabezado">
+    <main className="shell shell--juego">
+      {/* Encabezado flotante: ocupa lo mínimo para que el mundo se vea, pero
+          el distintivo sigue en pantalla siempre (AC-10). */}
+      <header className="shell__encabezado shell__encabezado--flotante">
         <DistintivoBorrador />
-        <h1 className="shell__titulo">{titulo}</h1>
+        <h1 className="shell__titulo shell__titulo--juego">{titulo}</h1>
       </header>
 
-      {jugando ? (
-        <EpisodioEnCurso
-          episodio={episodio}
-          ageMode={ageMode}
-          alVolverAlInicio={() => setJugando(false)}
-        />
-      ) : (
-        <section className="inicio" aria-labelledby="inicio-titulo">
-          <h2 className="inicio__titulo" id="inicio-titulo">
-            {TEXTOS_UI.inicio.subtitulo}
-          </h2>
-          <p className="inicio__prologo">{TEXTOS_UI.inicio.prologo}</p>
-
-          <fieldset className="inicio__edades">
-            <legend>{TEXTOS_UI.inicio.leyendaEdad}</legend>
-            {MODOS_DE_EDAD.map((modo) => (
-              <label key={modo.id} className="objetivo-tactil inicio__edad">
-                <input
-                  type="radio"
-                  name="modo-de-edad"
-                  value={modo.id}
-                  checked={ageMode === modo.id}
-                  onChange={() => setAgeMode(modo.id)}
-                />
-                <span>{modo.etiqueta}</span>
-              </label>
-            ))}
-          </fieldset>
-
-          <button
-            type="button"
-            className="objetivo-tactil boton boton--primario"
-            onClick={() => setJugando(true)}
-          >
-            {TEXTOS_UI.inicio.empezar}
-          </button>
-        </section>
-      )}
+      <EpisodioEnCurso episodio={episodio} ageMode={ageMode} alCambiarEdad={setAgeMode} />
     </main>
+  );
+}
+
+/** Control de quien acompaña: por qué grupo de edad se está jugando (AC-3). */
+export function SelectorDeEdad({
+  ageMode,
+  alCambiarEdad,
+}: {
+  readonly ageMode: AgeMode;
+  readonly alCambiarEdad: (modo: AgeMode) => void;
+}) {
+  return (
+    <fieldset className="barra-adulto__edades">
+      <legend className="visualmente-oculto">{TEXTOS_UI.inicio.leyendaEdad}</legend>
+      {MODOS_DE_EDAD.map((modo) => (
+        <label key={modo.id} className="objetivo-tactil barra-adulto__edad">
+          <input
+            type="radio"
+            name="modo-de-edad"
+            value={modo.id}
+            checked={ageMode === modo.id}
+            onChange={() => alCambiarEdad(modo.id)}
+          />
+          <span>{modo.etiqueta}</span>
+        </label>
+      ))}
+    </fieldset>
   );
 }

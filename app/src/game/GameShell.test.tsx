@@ -53,15 +53,21 @@ const SALUDO = {
   pregunta: "s03_n002",
 };
 
-/** Empieza el episodio y salta a una escena con el selector de desarrollo. */
+/**
+ * Abre el juego —se entra directo, sin pantalla de inicio— y salta a una
+ * escena con el selector de desarrollo.
+ */
 async function empezarEn(escena: string, modo?: "6-8" | "9-12") {
   const usuario = userEvent.setup();
   render(<GameShell />);
 
   if (modo) {
-    await usuario.click(screen.getByRole("radio", { name: TEXTOS_UI.inicio[modo === "6-8" ? "edad68" : "edad912"] }));
+    await usuario.click(
+      screen.getByRole("radio", {
+        name: TEXTOS_UI.inicio[modo === "6-8" ? "edad68" : "edad912"],
+      }),
+    );
   }
-  await usuario.click(screen.getByRole("button", { name: TEXTOS_UI.inicio.empezar }));
   await usuario.selectOptions(screen.getByLabelText(TEXTOS_UI.desarrollo.selectorDeEscena), escena);
 
   return usuario;
@@ -81,15 +87,17 @@ beforeEach(() => {
   window.localStorage.clear();
 });
 
-describe("GameShell — pantalla de inicio", () => {
-  it("muestra el distintivo de borrador y el título que viene del contenido", () => {
+describe("GameShell — arranque", () => {
+  it("entra directo al episodio, sin pantalla de inicio", () => {
     render(<GameShell />);
 
+    // La primera línea del guion está en pantalla desde el primer momento.
+    expect(screen.getByRole("button", { name: TEXTOS_UI.dialogo.continuar })).toBeVisible();
     expect(screen.getByText(TEXTOS_UI.distintivoBorrador)).toBeVisible();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(texto(episodio.titleLocId));
   });
 
-  it("deja elegir el modo de edad antes de empezar", () => {
+  it("deja a quien acompaña elegir el grupo de edad durante el juego", () => {
     render(<GameShell />);
 
     expect(screen.getByRole("radio", { name: TEXTOS_UI.inicio.edad68 })).toBeChecked();
@@ -192,8 +200,11 @@ describe("GameShell — el saludo de Capi", () => {
     }
 
     // Se vuelve a la misma decisión, con las mismas opciones y sin rastro de
-    // los intentos anteriores.
-    const decision = screen.getByRole("group");
+    // los intentos anteriores. Se busca por su nombre porque el grupo del
+    // adulto (el selector de edad) también es un `group`.
+    const decision = screen.getByRole("group", {
+      name: textoDeLinea(SALUDO.escena, SALUDO.pregunta),
+    });
     expect(within(decision).getAllByRole("button")).toHaveLength(5);
   });
 

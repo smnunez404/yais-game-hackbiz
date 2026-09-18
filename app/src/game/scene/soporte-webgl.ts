@@ -1,8 +1,7 @@
 // Detección de capacidades del dispositivo (T-001-06).
 //
-// Dos preguntas, las dos sobre el navegador y ninguna sobre quien juega:
-// si hay WebGL y si el sistema pide menos movimiento. Ninguna se guarda ni
-// sale del dispositivo (AC-9).
+// Una pregunta sobre el navegador y ninguna sobre quien juega: si hay WebGL.
+// La respuesta no se guarda ni sale del dispositivo (AC-9).
 //
 // Se responden ANTES de importar Three: `EscenaDelEpisodio` solo carga el
 // módulo de la escena cuando hay WebGL, así que un equipo sin aceleración no
@@ -25,13 +24,5 @@ export function soportaWebGL(): boolean {
   }
 }
 
-/** `true` si el sistema pide reducir el movimiento (AC-7). */
-export function prefiereMenosMovimiento(): boolean {
-  try {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  } catch {
-    // Un navegador sin `matchMedia` es tan viejo que la escena 3D no es su
-    // problema principal; se asume la opción prudente.
-    return true;
-  }
-}
+// La preferencia de movimiento no se lee aquí: cambia durante la sesión, así
+// que vive en `useMenosMovimiento`, que se suscribe a ella (AC-7).

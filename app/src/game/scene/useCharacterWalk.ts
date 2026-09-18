@@ -21,7 +21,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef, type RefObject } from "react";
 import type { Group } from "three";
 
-import { dentroDeLaIsla, type ComandoDeJugador } from "./control-del-jugador";
+import { dentroDelMundo, type ComandoDeJugador } from "./control-del-jugador";
 import type { Posicion } from "./posiciones";
 
 /** Unidades por segundo. La isla mide 6,3: cruzarla lleva unos 4 segundos. */
@@ -117,7 +117,7 @@ export function useCharacterWalk({
 
     if (orden?.tipo === "direccion") {
       const paso = VELOCIDAD * delta;
-      const sitio = dentroDeLaIsla(
+      const sitio = dentroDelMundo(
         objeto.position.x + orden.x * paso,
         objeto.position.z + orden.z * paso,
       );

@@ -110,15 +110,15 @@ export interface ChoiceView {
   /** Solo las opciones visibles en el modo de edad activo (AC-3). */
   readonly options: readonly ChoiceOptionView[];
   /**
-   * Última línea mostrada en esta escena, o `null` si se entró directo a la
-   * decisión. Es la pregunta que el guion hace justo antes (por ejemplo
-   * `s03_n002`, «¿Cómo quieres saludarme?»), y viaja con la decisión para
-   * que la UI pueda mantenerla en pantalla mientras el niño elige: si no,
-   * la interfaz tendría que escribir una pregunta propia, y eso sería
-   * contenido infantil fuera de `content/` (AGENTS.md, Constitución IV).
+   * La pregunta que el guion hace para esta decisión (por ejemplo `s03_n002`,
+   * «¿Cómo quieres saludarme?»), o `null` si no hay ninguna. Viaja con la
+   * decisión para que la UI pueda mantenerla en pantalla mientras el niño
+   * elige: si no, la interfaz tendría que escribir una pregunta propia, y eso
+   * sería contenido infantil fuera de `content/` (AGENTS.md, Constitución IV).
    *
-   * Se olvida al entrar a otra escena: nunca arrastra la pregunta de la
-   * escena anterior.
+   * Es la última línea mostrada cuando esa línea lleva a esta decisión, y si
+   * no —al volver por un camino de reintento— la línea que el guion pone
+   * delante de ella. Nunca arrastra la pregunta de otra escena.
    */
   readonly precedingLine: LineView | null;
 }
@@ -364,17 +364,41 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
     return Object.freeze(Object.fromEntries(variablesDeSesion));
   }
 
+  function construirVistaDeLinea(scene: Scene, node: LineNode): LineView {
+    return {
+      kind: "line",
+      scene,
+      node,
+      speaker: node.speaker,
+      speakerName: nombreDe(node.speaker),
+      text: texto(node.locId),
+    };
+  }
+
+  /**
+   * La pregunta que acompaña a una decisión.
+   *
+   * Normalmente es la última línea mostrada, que es lo que el niño acaba de
+   * leer. Pero al volver a una decisión por un camino de reintento —«cambiar
+   * de saludo» devuelve a `s03_c001` desde `s03_c002`— esa última línea es la
+   * de la otra decisión y no viene a cuento. En ese caso se usa la línea que
+   * el guion pone delante de esta decisión, que es la pregunta que su autora
+   * escribió para ella.
+   */
+  function preguntaDeLaDecision(scene: Scene, node: ChoiceNode): LineView | null {
+    if (ultimaLineaDeLaEscena && ultimaLineaDeLaEscena.node.next === node.id) {
+      return ultimaLineaDeLaEscena;
+    }
+    const delGuion = scene.nodes.find(
+      (candidato): candidato is LineNode => candidato.type === "line" && candidato.next === node.id,
+    );
+    return delGuion ? construirVistaDeLinea(scene, delGuion) : null;
+  }
+
   function vistaDeNodo(scene: Scene, node: EpisodeNode): RuntimeView {
     switch (node.type) {
       case "line": {
-        const vista: LineView = {
-          kind: "line",
-          scene,
-          node,
-          speaker: node.speaker,
-          speakerName: nombreDe(node.speaker),
-          text: texto(node.locId),
-        };
+        const vista = construirVistaDeLinea(scene, node);
         ultimaLineaDeLaEscena = vista;
         return vista;
       }
@@ -401,7 +425,7 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
           scene,
           node,
           options: visibles,
-          precedingLine: ultimaLineaDeLaEscena,
+          precedingLine: preguntaDeLaDecision(scene, node),
         };
       }
       case "end":

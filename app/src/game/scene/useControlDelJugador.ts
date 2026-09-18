@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 
-import { dentroDeLaIsla, direccionDeTeclas, type ComandoDeJugador } from "./control-del-jugador";
+import { dentroDelMundo, direccionDeTeclas, type ComandoDeJugador } from "./control-del-jugador";
 
 interface ControlDelJugador {
   /** Lo que se está pidiendo ahora mismo, o `null` si nadie toca nada. */
@@ -35,9 +35,9 @@ export function useControlDelJugador({
     (x: number, z: number) => {
       if (menosMovimiento) return;
       // Se acepta cualquier punto y se acerca al sitio alcanzable más
-      // próximo: pedirle a un niño de seis años que acierte al disco exacto
-      // de la isla convierte el control en algo que "a veces no funciona".
-      const sitio = dentroDeLaIsla(x, z);
+      // próximo: pedirle a un niño de seis años que acierte al suelo exacto
+      // convierte el control en algo que "a veces no funciona".
+      const sitio = dentroDelMundo(x, z);
       comando.current = { tipo: "destino", posicion: [sitio.x, 0, sitio.z] };
       alRecibirOrden();
     },

@@ -23,6 +23,7 @@ import {
   type RuntimeDiagnostic,
 } from "../../engine";
 import { crearAlmacenamientoDelNavegador } from "../../shared/browser-storage";
+import { SelectorDeEdad } from "../GameShell";
 import { EscenaDelEpisodio } from "../scene/EscenaDelEpisodio";
 import { TEXTOS_UI } from "../ui/textos-ui";
 import { AvisoDeDesarrollo } from "./AvisoDeDesarrollo";
@@ -33,7 +34,8 @@ import { PantallaDeCierre } from "./PantallaDeCierre";
 interface EpisodioEnCursoProps {
   readonly episodio: EpisodeContent;
   readonly ageMode: AgeMode;
-  readonly alVolverAlInicio: () => void;
+  /** Cambiarlo reinicia el episodio: ver el comentario de `GameShell`. */
+  readonly alCambiarEdad: (modo: AgeMode) => void;
 }
 
 /** Los diagnósticos se quedan en el dispositivo y solo en desarrollo (AC-9). */
@@ -43,7 +45,7 @@ function registrarDiagnostico(diagnostico: RuntimeDiagnostic): void {
   }
 }
 
-export function EpisodioEnCurso({ episodio, ageMode, alVolverAlInicio }: EpisodioEnCursoProps) {
+export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEnCursoProps) {
   // Un runtime por sesión de juego. Cambiar el modo de edad empieza una
   // sesión nueva: no se puede cambiar a mitad de episodio.
   const runtime = useMemo(
@@ -113,7 +115,6 @@ export function EpisodioEnCurso({ episodio, ageMode, alVolverAlInicio }: Episodi
             ageMode={ageMode}
             texto={runtime.texto}
             alVolverAJugar={runtime.reiniciar}
-            alVolverAlInicio={alVolverAlInicio}
           />
         ) : null}
 
@@ -133,15 +134,18 @@ export function EpisodioEnCurso({ episodio, ageMode, alVolverAlInicio }: Episodi
         ) : null}
       </div>
 
-      {/* Parar es siempre posible y nunca cuesta nada (Constitución V).
-          El rótulo viene del contenido, no de la interfaz. */}
+      {/* Barra de quien acompaña. Parar es siempre posible y nunca cuesta
+          nada (Constitución V); el rótulo viene del contenido, no de la
+          interfaz. El grupo de edad vive aquí porque es decisión del adulto,
+          no del niño, y cambiarlo reinicia el episodio. */}
       {pausa.alwaysVisible ? (
-        <footer className="episodio__pie">
+        <footer className="episodio__pie barra-adulto">
           <p className="episodio__pausa-texto">{runtime.texto(pausa.promptLocId)}</p>
+          <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
           <button
             type="button"
             className="objetivo-tactil boton boton--secundario"
-            onClick={alVolverAlInicio}
+            onClick={runtime.reiniciar}
           >
             {opcionDeParar ? runtime.texto(opcionDeParar.locId) : TEXTOS_UI.dialogo.volverAlInicio}
           </button>

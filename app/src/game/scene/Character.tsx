@@ -41,6 +41,12 @@ interface CharacterProps {
   readonly menosMovimiento: boolean;
   /** Solo el personaje que controla quien juega lo recibe. */
   readonly comandoDelJugador?: RefObject<ComandoDeJugador | null> | undefined;
+  /**
+   * Ref que la cámara usa para seguirlo. Se comparte en vez de exponer la
+   * posición por estado: seguir a alguien es cosa de cada cuadro y hacerlo
+   * por render sería un re-render por cuadro (PLAN-001).
+   */
+  readonly grupoCompartido?: RefObject<Group | null> | undefined;
   readonly alCambiarActividad: (characterId: CharacterId, enMovimiento: boolean) => void;
 }
 
@@ -74,9 +80,11 @@ export function Character({
   sessionVars,
   menosMovimiento,
   comandoDelJugador,
+  grupoCompartido,
   alCambiarActividad,
 }: CharacterProps) {
-  const grupo = useRef<Group>(null);
+  const grupoPropio = useRef<Group>(null);
+  const grupo = grupoCompartido ?? grupoPropio;
   // El segundo argumento desactiva el decodificador Draco de drei, que por
   // omisión lo pediría a un CDN de Google. Los GLB de hoy no usan Draco, pero
   // si alguien los comprime antes de la demo, el aula sin Internet se

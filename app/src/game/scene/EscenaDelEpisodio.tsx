@@ -29,7 +29,8 @@ import {
 
 import type { RuntimeState, RuntimeView } from "../../engine";
 import { estadoDeEscenaDesde } from "./estado-de-escena";
-import { prefiereMenosMovimiento, soportaWebGL } from "./soporte-webgl";
+import { soportaWebGL } from "./soporte-webgl";
+import { useMenosMovimiento } from "./useMenosMovimiento";
 
 const GameCanvas = lazy(() => import("./GameCanvas"));
 
@@ -41,8 +42,10 @@ interface EscenaDelEpisodioProps {
 export function EscenaDelEpisodio({ vista, estado }: EscenaDelEpisodioProps) {
   // Ambas preguntas se hacen una vez por montaje: no cambian a mitad de
   // partida y preguntarlas en cada render solo gastaría trabajo.
+  // WebGL se comprueba una vez: no aparece a mitad de sesión. La preferencia
+  // de movimiento, en cambio, se escucha: puede cambiar durante una demo.
   const hayWebGL = useMemo(() => soportaWebGL(), []);
-  const menosMovimiento = useMemo(() => prefiereMenosMovimiento(), []);
+  const menosMovimiento = useMenosMovimiento();
 
   const escena = useMemo(() => estadoDeEscenaDesde(vista, estado), [vista, estado]);
 

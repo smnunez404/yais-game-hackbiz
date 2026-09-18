@@ -5,12 +5,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import {
-  dentroDeLaIsla,
-  direccionDeTecla,
-  direccionDeTeclas,
-  RADIO_CAMINABLE,
-} from "./control-del-jugador";
+import { dentroDelMundo, direccionDeTecla, direccionDeTeclas, esCaminable } from "./control-del-jugador";
 
 describe("direccionDeTecla", () => {
   it("mueve con W, A, S y D", () => {
@@ -48,21 +43,17 @@ describe("direccionDeTeclas", () => {
   });
 });
 
-describe("dentroDeLaIsla", () => {
-  it("deja pasar cualquier punto que ya esté dentro", () => {
-    expect(dentroDeLaIsla(1, 1)).toEqual({ x: 1, z: 1 });
+describe("dentroDelMundo", () => {
+  it("deja pasar cualquier punto que ya se pueda pisar", () => {
+    expect(dentroDelMundo(1, 1)).toEqual({ x: 1, z: 1 });
   });
 
-  it("no deja salirse de la isla ni señalando el agua", () => {
-    const fuera = dentroDeLaIsla(10, -10);
+  it("no deja caminar sobre el agua", () => {
+    const fuera = dentroDelMundo(30, -30);
 
-    expect(Math.hypot(fuera.x, fuera.z)).toBeCloseTo(RADIO_CAMINABLE, 5);
-    // Conserva la dirección: se queda en el borde más cercano a donde apuntó.
+    expect(esCaminable(fuera.x, fuera.z)).toBe(true);
+    // Conserva la dirección: acaba en la orilla más cercana a donde apuntó.
     expect(Math.sign(fuera.x)).toBe(1);
     expect(Math.sign(fuera.z)).toBe(-1);
-  });
-
-  it("el borde caminable está dentro de la isla, que llega a 3,13", () => {
-    expect(RADIO_CAMINABLE).toBeLessThan(3.13);
   });
 });

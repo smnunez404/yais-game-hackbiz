@@ -219,6 +219,24 @@ describe("crearRuntime — navegación", () => {
     expect(decision.precedingLine?.text).toBe(textos["EP01_S03_L002"]);
   });
 
+  it("al volver a una decisión por reintento recupera su propia pregunta", () => {
+    const { runtime } = montar({ startSceneId: "s03_saludo_capi" });
+    avanzarHastaParar(runtime);
+    runtime.elegir("wave");
+    avanzarHastaParar(runtime);
+
+    // En `s03_c002` la pregunta es la suya (`s03_n004`), no la del saludo.
+    expect(esperarVista(runtime.vista(), "choice").precedingLine?.node.id).toBe("s03_n004");
+
+    runtime.elegir("change");
+
+    // De vuelta en `s03_c001`: la pregunta vuelve a ser la del saludo, y no
+    // la última línea leída, que era la de la otra decisión.
+    const saludo = esperarVista(runtime.vista(), "choice");
+    expect(saludo.node.id).toBe("s03_c001");
+    expect(saludo.precedingLine?.node.id).toBe("s03_n002");
+  });
+
   it("no arrastra la pregunta de una escena a la siguiente", () => {
     const { runtime } = montar({ startSceneId: "s03_saludo_capi" });
     avanzarHastaParar(runtime);

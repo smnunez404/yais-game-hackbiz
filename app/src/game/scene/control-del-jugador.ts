@@ -15,6 +15,7 @@
 // escenas son grafos de nodos, sin una sola coordenada. Eso es cambio de
 // modelo de contenido y va por spec, no por aquí.
 
+import { acercarAZonaCaminable, esCaminable } from "./mundo";
 import type { Posicion } from "./posiciones";
 
 /**
@@ -27,11 +28,12 @@ export type ComandoDeJugador =
   | { readonly tipo: "destino"; readonly posicion: Posicion };
 
 /**
- * Radio dentro del cual el personaje puede andar. La isla llega a 3,13; se
- * deja margen para que no camine por el borde redondeado ni quede colgando
- * sobre el agua.
+ * Hasta dónde llega el suelo que se puede pisar lo decide `mundo.ts`: tres
+ * islas y dos puentes. Aquí solo se reexporta la comprobación para que el
+ * control y el bucle de caminata usen exactamente la misma regla que el
+ * decorado.
  */
-export const RADIO_CAMINABLE = 2.6;
+export { acercarAZonaCaminable, esCaminable };
 
 /** Teclas de movimiento, por dirección. */
 const TECLAS: Readonly<Record<string, readonly [number, number]>> = {
@@ -66,10 +68,10 @@ export function direccionDeTeclas(teclas: Iterable<string>): { x: number; z: num
   return { x: x / largo, z: z / largo };
 }
 
-/** Devuelve la posición pedida, encerrada dentro de la isla. */
-export function dentroDeLaIsla(x: number, z: number): { x: number; z: number } {
-  const distancia = Math.hypot(x, z);
-  if (distancia <= RADIO_CAMINABLE) return { x, z };
-  const factor = RADIO_CAMINABLE / distancia;
-  return { x: x * factor, z: z * factor };
+/**
+ * Devuelve la posición pedida si se puede pisar, y si no la más cercana que
+ * sí: tocar el agua lleva a la orilla en vez de no hacer nada.
+ */
+export function dentroDelMundo(x: number, z: number): { x: number; z: number } {
+  return acercarAZonaCaminable(x, z);
 }

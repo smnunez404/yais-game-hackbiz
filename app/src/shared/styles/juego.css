@@ -147,11 +147,15 @@
 
 /* --- Episodio en curso --------------------------------------------------- */
 
+/* El episodio se apoya en la parte baja de la ventana, por encima del mundo. */
 .episodio {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--espacio-3);
-  margin-top: var(--espacio-3);
+  gap: var(--espacio-2);
+  inline-size: min(100%, 52rem);
+  margin-inline: auto;
 }
 
 .episodio__contenido {
@@ -164,18 +168,100 @@
   border-radius: var(--radio);
 }
 
+/* Barra de quien acompaña: pausa, grupo de edad y parar. Opaca, para que se
+   lea sobre cualquier parte del mundo. */
 .episodio__pie {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--espacio-1);
+  padding: var(--espacio-1) var(--espacio-2);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.barra-adulto__edades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.barra-adulto__edad {
+  cursor: pointer;
+  font-size: 1rem;
 }
 
 .episodio__pausa-texto {
   margin: 0;
   color: var(--color-texto-suave);
   font-size: 1rem;
+}
+
+/* --- Modo inmersivo ------------------------------------------------------ */
+
+/* El mundo ocupa la ventana y todo lo demás flota encima. Los paneles siguen
+   siendo opacos: el texto conserva su contraste medido y no depende de lo que
+   haya detrás (Constitución VII). */
+.shell--juego {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+  min-block-size: calc(100dvh - var(--espacio-3) * 2);
+}
+
+/* El encabezado no empuja el mundo hacia abajo: se apoya arriba a la
+   izquierda. El distintivo sigue siendo lo primero que se ve (AC-10). */
+.shell__encabezado--flotante {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  /* Por encima de todo, incluidas las herramientas de desarrollo: el
+     distintivo de borrador no puede quedar tapado por nada (AC-10). */
+  z-index: 3;
+  gap: var(--espacio-1);
+  pointer-events: none;
+}
+
+.shell__titulo--juego {
+  padding: var(--espacio-1) var(--espacio-2);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  font-size: var(--fuente-tamano-subtitulo);
+}
+
+/* En modo inmersivo los paneles ocupan lo justo: el mundo es la pantalla y el
+   diálogo se apoya encima, no al revés. */
+.shell--juego .episodio__contenido {
+  padding: var(--espacio-2);
+}
+
+/* El retrato se encoge porque el personaje ya está ahí, en 3D, a tamaño
+   completo. Se queda —no desaparece— porque es lo que dice quién habla cuando
+   quien habla no tiene modelo, como Luna o Don Beto. */
+.shell--juego .personaje__retrato {
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+}
+
+/* Las herramientas de desarrollo se apartan a una esquina: no pueden comerse
+   la pantalla del juego ni siquiera mientras se desarrolla. */
+.shell--juego .herramientas-desarrollo {
+  position: fixed;
+  /* Arriba a la derecha: abajo taparía «Terminar por hoy», y parar tiene que
+     estar siempre a mano (Constitución V). */
+  inset-block-start: var(--espacio-1);
+  inset-inline-end: var(--espacio-1);
+  z-index: 2;
+  padding: var(--espacio-1);
+  font-size: 0.875rem;
 }
 
 /* --- Escena 3D ----------------------------------------------------------- */
@@ -191,22 +277,23 @@
    es lo que hay que leer, nunca quede empujado fuera de una pantalla de
    laptop de 768 px de alto. */
 .escena {
-  block-size: clamp(14rem, 46vh, 24rem);
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
   background-color: var(--color-cielo);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio);
 }
 
-/* El panel de diálogo se apoya sobre la escena, sin transparencias: sigue
-   siendo opaco, así que el texto conserva sus 16.20:1 de contraste medido.
-   Lo que se gana es que la isla ocupe la pantalla y el diálogo se lea encima,
-   como en el concepto de arte. */
-.escena + .episodio__contenido {
+/* Los paneles se posicionan explícitamente para quedar por encima del mundo.
+   Sin esto el lienzo, que es un elemento posicionado, se pinta sobre ellos
+   aunque estén después en el documento: el orden de pintado de CSS no es el
+   orden del HTML. */
+.episodio__contenido,
+.episodio__pie,
+.herramientas-desarrollo,
+.aviso-desarrollo {
   position: relative;
   z-index: 1;
-  margin-block-start: calc(var(--espacio-4) * -1);
-  margin-inline: var(--espacio-2);
 }
 
 /* --- Diálogo ------------------------------------------------------------- */
@@ -408,15 +495,36 @@
     block-size: 5rem;
   }
 
-  /* En pantalla angosta el decorado cede sitio al texto, y el diálogo deja
-     de solaparse: con tan poca altura, robarle 2 rem a la isla la borra. */
-  .escena {
-    block-size: 11rem;
+  /* En pantalla angosta el título cede su sitio: basta el distintivo. */
+  .shell__titulo--juego {
+    font-size: 1rem;
   }
 
-  .escena + .episodio__contenido {
-    margin-block-start: var(--espacio-1);
-    margin-inline: 0;
+  /* El diálogo no se apila: con el retrato encima del texto, el panel crece
+     tanto que tapa el mundo entero. Se queda en dos columnas con el retrato
+     pequeño. */
+  .shell--juego .dialogo {
+    grid-template-columns: auto 1fr;
+  }
+
+  .shell--juego .personaje {
+    grid-row: span 2;
+    flex-direction: column;
+  }
+
+  .shell--juego .personaje__retrato {
+    inline-size: 3rem;
+    block-size: 3rem;
+  }
+
+  .shell--juego .personaje__nombre {
+    font-size: 0.75rem;
+  }
+
+  /* Las herramientas de desarrollo vuelven al flujo: fijas taparían el
+     distintivo de borrador, que no puede ocultarse (AC-10). */
+  .shell--juego .herramientas-desarrollo {
+    position: static;
   }
 
   .boton {
