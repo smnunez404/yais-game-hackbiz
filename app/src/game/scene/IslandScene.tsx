@@ -279,6 +279,20 @@ const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
     { id: "palm", angulo: 0.3, distancia: 0.65 },
     { id: "bench", angulo: 0.9, distancia: 0.55, rotationY: 0.7 },
     { id: "flower_bush", angulo: -0.5, distancia: 0.5 },
+    // Cuatro props del kit de reciclaje/cuidado (`PROP_ASSETS`) que estaban
+    // registrados desde T-001-02 y nunca se dibujaban en ningún sitio: pedido
+    // explícito para sumar decorado con tema ambiental al archipiélago, sin
+    // texto y sin mecánica nueva (Constitución IV: nada que un niño lea o
+    // escuche puede salir de aquí sin pasar antes por Arianna). Al principio
+    // se repartieron uno por isla en el tercer anillo (puramente decorativo),
+    // pero quedaban a ~20-25 unidades del punto de partida y nadie los veía
+    // sin explorar mucho; se movieron aquí, a la isla de partida —
+    // `PUNTO_DE_PARTIDA` cae dentro de su propio radio caminable, es
+    // literalmente donde aparece quien juega— para que se noten sin buscar.
+    { id: "recycling_bin", angulo: -1.5, distancia: 0.5, rotationY: -0.6 },
+    { id: "water_bottle", angulo: 1.8, distancia: 0.45 },
+    { id: "water_drop", angulo: -2.9, distancia: 0.5 },
+    { id: "seedling", angulo: -0.9, distancia: 0.45 },
   ],
   "isla-faro": [
     { id: "lighthouse", angulo: -1.1, distancia: 0.75, scale: 0.9 },
@@ -367,31 +381,19 @@ const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
   "isla-cascada": [
     { id: "stairs_three", angulo: -1.9, distancia: 0.4, rotationY: -1.9 },
     { id: "tree_round", angulo: 0.9, distancia: 0.6, scale: 0.75 },
-    // Cuatro props del kit de reciclaje/cuidado (`PROP_ASSETS`) que estaban
-    // registrados desde T-001-02 y nunca se dibujaban en ningún sitio: pedido
-    // explícito para sumar decorado con tema ambiental al archipiélago, sin
-    // texto y sin mecánica nueva (Constitución IV: nada que un niño lea o
-    // escuche puede salir de aquí sin pasar antes por Arianna). Se reparten
-    // uno por isla, en las que hoy son puramente decorativas del tercer
-    // anillo, para que se vean como parte del paisaje y no como un montón en
-    // un solo sitio.
-    { id: "recycling_bin", angulo: 1.7, distancia: 0.45, rotationY: -0.6 },
   ],
   "isla-risco": [
     { id: "lighthouse", angulo: 0, distancia: 0.7, scale: 0.8 },
     { id: "rock_large", angulo: 2.2, distancia: 0.55 },
-    { id: "water_bottle", angulo: -1.3, distancia: 0.5 },
   ],
   "isla-cueva": [
     { id: "rock_large", angulo: -0.6, distancia: 0.6 },
     { id: "rock_small", angulo: 1.5, distancia: 0.55 },
     { id: "tree_round", angulo: 2.8, distancia: 0.5, scale: 0.6 },
-    { id: "water_drop", angulo: -2.4, distancia: 0.45 },
   ],
   "isla-nido": [
     { id: "tree_round", angulo: 0.6, distancia: 0.6, scale: 0.85 },
     { id: "flower_bush", angulo: -1.2, distancia: 0.5 },
-    { id: "seedling", angulo: 2.2, distancia: 0.5 },
   ],
   "isla-sendero": [
     { id: "palm", angulo: -0.3, distancia: 0.6, scale: 0.7 },

@@ -184,6 +184,25 @@ comprobó visualmente cada una de las cuatro islas nuevas por separado
 (quedan lejos del punto de partida); se confirmó que no rompieron nada,
 no que se vean exactamente como se describen aquí.
 
+### Corrección — se movieron a la isla de partida, y esta vez sí se vieron
+
+El usuario jugó y confirmó que, en efecto, no los vio: demasiado lejos.
+Se movieron los cuatro (`recycling_bin`, `water_bottle`, `water_drop`,
+`seedling`) de las cuatro islas del tercer anillo a `isla-partida` —la
+única isla donde `PUNTO_DE_PARTIDA` cae dentro de su propio radio
+caminable, es decir, literalmente donde aparece quien juega—, con el
+mismo mecanismo de colocación y anticolisión, sin duplicarlos.
+
+Esta vez la verificación visual sí se hizo de verdad, no solo "no rompió
+nada": se caminó hasta la isla de partida en el navegador y se confirmó
+a simple vista la gota de agua (`water_drop`) junto al puente principal
+y el plantín (`seedling`) en el césped cercano. No se confirmó
+visualmente la botella de agua ni el contenedor de reciclaje por
+separado (deberían estar ahí, por el mismo mecanismo, pero no se les
+sacó una captura propia).
+
+`npm run verify` en verde con el traslado integrado.
+
 ## Corrección de estado — 2026-09-18
 
 Esta sección **manda sobre lo que digan las secciones de más abajo**. Las
