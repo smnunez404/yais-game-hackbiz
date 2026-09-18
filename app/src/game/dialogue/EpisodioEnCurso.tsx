@@ -199,12 +199,20 @@ export function EpisodioEnCurso({
           interfaz. El grupo de edad vive aquí porque es decisión del adulto,
           no del niño, y cambiarlo reinicia el episodio.
 
-          Durante una decisión se queda solo el botón de parar: ahí la pantalla
-          ya está pidiendo al niño que elija entre cinco cosas y los controles
-          del adulto son ruido. Lo que NO se retira es parar, aunque se pidiera
-          quitar la barra entera: el momento de una decisión difícil es
-          justamente cuando hace falta poder irse, y el contenido declara
-          `pause.alwaysVisible: true` (Constitución V). */}
+          Durante una decisión o un minijuego se queda solo el botón de parar:
+          en ambos casos la pantalla ya le está pidiendo algo al niño —elegir
+          entre varias tarjetas, colocar una ficha, responder una pregunta— y
+          los controles del adulto son ruido compitiendo justo debajo de esas
+          opciones (reporte de usuario: la barra se veía "muy sobrecargada"
+          encima de un minijuego de dos opciones grandes). Lo que NO se retira
+          es parar, aunque se pidiera quitar la barra entera: el momento de
+          responder algo es justamente cuando hace falta poder irse, y el
+          contenido declara `pause.alwaysVisible: true` (Constitución V).
+
+          La celebración (`reward`) no se reduce: ahí ya no hay ninguna
+          decisión ni respuesta pendiente —es una sola pantalla con un botón
+          para seguir—, así que el texto de pausa y el selector de edad no
+          compiten con nada y caben sin agobiar. */}
       {/* En el cierre no se dibuja: el episodio ya terminó, «Podemos parar
           cuando quieras» no significa nada ahí, y la pantalla de cierre ya
           trae su propio control para volver al mapa. Dejarlo ponía el mismo
@@ -212,10 +220,12 @@ export function EpisodioEnCurso({
       {pausa.alwaysVisible && vista.kind !== "end" ? (
         <footer
           className={
-            vista.kind === "choice" ? "episodio__pie barra-adulto barra-adulto--minima" : "episodio__pie barra-adulto"
+            vista.kind === "choice" || vista.kind === "minigame"
+              ? "episodio__pie barra-adulto barra-adulto--minima"
+              : "episodio__pie barra-adulto"
           }
         >
-          {vista.kind === "choice" ? null : (
+          {vista.kind === "choice" || vista.kind === "minigame" ? null : (
             <>
               <p className="episodio__pausa-texto">{runtime.texto(pausa.promptLocId)}</p>
 
