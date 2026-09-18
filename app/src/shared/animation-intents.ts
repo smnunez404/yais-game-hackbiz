@@ -85,6 +85,7 @@ export type AnimationIntentId =
   | "place_compass_hud"
   | "playful_one_step"
   | "point_bridge"
+  | "point_horizon"
   | "point_star"
   | "raise_both_hands"
   | "raise_hand_soft"
@@ -143,6 +144,12 @@ export const ANIMATION_INTENT_MAP: Readonly<Record<AnimationIntentId, AnimationI
   lower_hands_smile: { clip: "TalkGesture", fidelity: "fallback" },
   place_compass_hud: { clip: "TalkGesture", fidelity: "fallback" },
   point_bridge: { clip: "TalkGesture", fidelity: "fallback" },
+  // Añadida junto con `EP01_S06_F003` (borrador sin aprobar, ver
+  // content/episodes/ep01-saludo.json): Capi señala hacia afuera de la isla
+  // al hablar de contarle a un adulto en la vida real. Mismo patrón que el
+  // resto de gestos de señalar: no hay un clip de "apuntar" propio, así que
+  // cae en `TalkGesture` como las demás.
+  point_horizon: { clip: "TalkGesture", fidelity: "fallback" },
   point_star: { clip: "TalkGesture", fidelity: "fallback" },
   scratch_head: { clip: "TalkGesture", fidelity: "fallback" },
   scratch_head_smile: { clip: "TalkGesture", fidelity: "fallback" },
