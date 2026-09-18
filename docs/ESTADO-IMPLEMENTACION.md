@@ -586,6 +586,63 @@ Cuatro rótulos de acción: «Tu brújula», «Chocar las manos», «Arma el pue
 que alguien dice—, pero un niño los lee, así que deberían mudarse a
 `localization` cuando el contenido pase la revisión de Arianna.
 
+## Episodio 2 — «Mi círculo de 3»
+
+Fecha: 2026-09-17. El guion no se inventó: está escrito por el equipo en
+`YAIS-RED/wiki/narrative/isla-de-los-acuerdos-guiones.md` §2, y lo que se hizo
+aquí fue estructurarlo. Cada línea de diálogo es literal del guion; lo que
+aporta el repositorio son los ids de nodo, las conexiones y la configuración de
+los minijuegos.
+
+**Lo que hay**
+
+- `content/episodes/ep02-circulo.json`: 5 escenas, 42 nodos, 83 textos y **15
+  marcas `review: "VALIDAR"`**, las mismas que el guion señala.
+- Dos minijuegos nuevos, con tipos y esquema propios: fichas de confianza
+  (`trust_cards`) y mi círculo de 3 (`circle_of_three`). En los dos, el
+  esquema exige `storeAnswers: false` de forma literal —no basta con
+  declararlo— porque guardar lo que un niño clasificó o en quién pensó sería
+  un perfil (Constitución I y III).
+- Cuatro iconos SVG nuevos (corazón, casa, escuela, comunidad) y cuatro
+  intenciones de animación nuevas, todas marcadas como relleno: no hay clip de
+  mano en el hombro, de señalarse, de entregar algo ni de guiño.
+- `shared/episodios.ts`: registro de episodios. Añadir el episodio 3 es añadir
+  una línea; los tests del esquema y del mapa de animaciones recorren la
+  carpeta entera, así que un episodio nuevo queda cubierto sin tocarlos.
+- Un selector de episodio en la barra de quien acompaña, con los títulos que
+  cada episodio trae en su propio contenido.
+
+**Reglas del guion que el código sostiene**
+
+- Las fichas hablan de **conductas, nunca de personas**. Y no se pueden
+  fallar: si la ficha va donde el guion no esperaba, Capi pregunta; al segundo
+  desvío da una pista; **al tercero la coloca él y lo explica**, que es lo que
+  garantiza que el juego siempre avance. Ese tercer paso faltaba y lo encontró
+  un recorrido automático que se quedó dando vueltas para siempre.
+- «Todavía estoy pensando» ilumina el círculo igual que haber pensado en tres
+  personas. Es el caso de un niño sin tres adultos de confianza, y el guion
+  decide a propósito que no se note como fracaso. Hay test.
+
+**Comprobado en el navegador**
+
+El episodio 2 se recorre entero: 57 pasos hasta el cierre, con el minijuego de
+fichas, la decisión de a quién pedir ayuda —que devuelve a la pregunta cuando
+se elige a un amigo, como dice el guion— y el círculo de 3.
+
+**Lo que hay que decidir antes de usarlo**
+
+- **Terminar el episodio 2 no guarda nada.** SPEC-001 AC-5 solo permite
+  persistir `ep01.completed`, así que `ep02.completed` se ignora con
+  diagnóstico, igual que los demás. Encadenar los episodios de verdad exige
+  antes una decisión de spec sobre qué puede sobrevivir a la sesión.
+- Las 15 líneas `[VALIDAR]` del episodio 2 incluyen las tres más delicadas
+  según el propio guion: la definición del círculo, el «pueden ser de tu casa,
+  de tu escuela o de tu comunidad» y el «tu profe o tu familia te pueden
+  ayudar a encontrar más personas». Ninguna está aprobada.
+- Los tres textos de los sitios del círculo —«Casa», «Escuela»,
+  «Comunidad»— se tomaron palabra por palabra de la línea aprobada que los
+  nombra, pero son texto nuevo en pantalla y deberían revisarse como tal.
+
 ## Pendientes y riesgos abiertos
 
 - Assets versionados en git normal (222 MB). Cada versión futura de un GLB de

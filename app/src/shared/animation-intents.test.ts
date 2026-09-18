@@ -3,7 +3,7 @@
 // `node:path`, `node:url`) sin tocar `tsconfig.app.json`, que a propósito
 // declara `"types": []` (ver `assets.test.ts`, mismo patrón).
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
@@ -39,10 +39,18 @@ function recolectarIntencionesDeAnimacion(valor: unknown, encontradas: Set<strin
   }
 }
 
-function intencionesUsadasEnElEpisodio(): ReadonlySet<string> {
-  const episodio = leerJson("content/episodes/ep01-saludo.json");
+/**
+ * Intenciones de todos los episodios versionados, no solo del primero: cada
+ * episodio nuevo que se añada a `content/` entra aquí solo, y si trae una
+ * intención sin entrada en el mapa, rompe este test en vez de reproducir un
+ * gesto que nadie decidió.
+ */
+function intencionesUsadasEnElContenido(): ReadonlySet<string> {
+  const carpeta = join(REPO_ROOT, "content/episodes");
   const encontradas = new Set<string>();
-  recolectarIntencionesDeAnimacion(episodio, encontradas);
+  for (const archivo of readdirSync(carpeta).filter((n) => n.endsWith(".json"))) {
+    recolectarIntencionesDeAnimacion(leerJson(`content/episodes/${archivo}`), encontradas);
+  }
   return encontradas;
 }
 
@@ -60,8 +68,8 @@ function clipsRealesPorPersonaje(): ReadonlyMap<CharacterId, ReadonlySet<Runtime
 }
 
 describe("mapa de intenciones de animación", () => {
-  it("cubre, con entrada explícita, toda intención que usa ep01-saludo.json", () => {
-    const usadas = intencionesUsadasEnElEpisodio();
+  it("cubre, con entrada explícita, toda intención que usa el contenido", () => {
+    const usadas = intencionesUsadasEnElContenido();
     // El contenido real tiene 61 intenciones distintas en la fecha de esta
     // tarea; si crece, esta afirmación falla primero y avisa con claridad.
     expect(usadas.size).toBeGreaterThan(0);
@@ -71,13 +79,13 @@ describe("mapa de intenciones de animación", () => {
       const esDinamica = esSaludoDeSesion(intencion);
       expect(
         esFija || esDinamica,
-        `"${intencion}" aparece en ep01-saludo.json pero no tiene entrada explícita en animation-intents.ts`,
+        `"${intencion}" aparece en el contenido pero no tiene entrada explícita en animation-intents.ts`,
       ).toBe(true);
     }
   });
 
   it("no deja ninguna intención del mapa sin usarse en el contenido actual (mapa exhaustivo, no adivinado)", () => {
-    const usadas = intencionesUsadasEnElEpisodio();
+    const usadas = intencionesUsadasEnElContenido();
     for (const intencion of Object.keys(ANIMATION_INTENT_MAP)) {
       expect(usadas.has(intencion), `"${intencion}" está en el mapa pero ningún nodo la usa`).toBe(
         true,

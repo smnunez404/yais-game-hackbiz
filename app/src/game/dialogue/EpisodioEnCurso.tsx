@@ -25,7 +25,7 @@ import {
 } from "../../engine";
 import { PRELOADED_CHARACTER_IDS } from "../../shared/assets";
 import { crearAlmacenamientoDelNavegador } from "../../shared/browser-storage";
-import { SelectorDeEdad } from "../GameShell";
+import { SelectorDeEdad, SelectorDeEpisodio } from "../GameShell";
 import { EscenaDelEpisodio } from "../scene/EscenaDelEpisodio";
 import { soportaWebGL } from "../scene/soporte-webgl";
 import { TEXTOS_UI } from "../ui/textos-ui";
@@ -41,6 +41,8 @@ interface EpisodioEnCursoProps {
   readonly ageMode: AgeMode;
   /** Cambiarlo reinicia el episodio: ver el comentario de `GameShell`. */
   readonly alCambiarEdad: (modo: AgeMode) => void;
+  readonly episodioId: string;
+  readonly alCambiarEpisodio: (id: string) => void;
 }
 
 /** Los diagnósticos se quedan en el dispositivo y solo en desarrollo (AC-9). */
@@ -50,7 +52,13 @@ function registrarDiagnostico(diagnostico: RuntimeDiagnostic): void {
   }
 }
 
-export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEnCursoProps) {
+export function EpisodioEnCurso({
+  episodio,
+  ageMode,
+  alCambiarEdad,
+  episodioId,
+  alCambiarEpisodio,
+}: EpisodioEnCursoProps) {
   // Un runtime por sesión de juego. Cambiar el modo de edad empieza una
   // sesión nueva: no se puede cambiar a mitad de episodio.
   const runtime = useMemo(
@@ -143,6 +151,7 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
         {vista.kind === "minigame" ? (
           <Minijuego
             vista={vista}
+            ageMode={ageMode}
             texto={runtime.texto}
             nombreDe={nombreDe}
             alTerminar={terminarMinijuego}
@@ -206,6 +215,10 @@ export function EpisodioEnCurso({ episodio, ageMode, alCambiarEdad }: EpisodioEn
                   {TEXTOS_UI.adulto.grupoDeEdad}
                 </summary>
                 <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
+                <SelectorDeEpisodio
+                  episodioId={episodioId}
+                  alCambiarEpisodio={alCambiarEpisodio}
+                />
               </details>
             </>
           )}

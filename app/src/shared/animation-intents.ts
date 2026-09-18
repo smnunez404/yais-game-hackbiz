@@ -43,7 +43,7 @@ export interface AnimationIntentEntry {
 }
 
 /**
- * Las 59 intenciones fijas del guion (no dependen de una variable de
+ * Las intenciones fijas del guion (no dependen de una variable de
  * sesión). Las 2 intenciones restantes del guion usan la forma dinámica
  * `greet_from_session:*` (ver `PREFIJO_SALUDO_DE_SESION` más abajo); juntas
  * suman las 61 intenciones distintas de `content/episodes/ep01-saludo.json`.
@@ -107,7 +107,12 @@ export type AnimationIntentId =
   | "uh_face_soft"
   | "walk_with_player"
   | "wave"
-  | "wave_turn_chair";
+  | "wave_turn_chair"
+  // Episodio 2
+  | "hand_on_shoulder"
+  | "point_self"
+  | "give_map"
+  | "wink";
 
 /**
  * Mapa explícito y exhaustivo de las 59 intenciones fijas. `Record` total
@@ -168,6 +173,14 @@ export const ANIMATION_INTENT_MAP: Readonly<Record<AnimationIntentId, AnimationI
   raise_hand_soft: { clip: "Wave", fidelity: "fallback" },
   wave: { clip: "Wave", fidelity: "aproximado" },
   wave_turn_chair: { clip: "Wave", fidelity: "fallback" },
+
+  // Episodio 2. Ninguna tiene clip propio: no existe gesto de mano en el
+  // hombro, de señalarse, de entregar algo ni de guiño en los cinco clips
+  // grabados, así que se rellenan con el más neutral que no mienta.
+  hand_on_shoulder: { clip: "Listen", fidelity: "fallback" },
+  point_self: { clip: "TalkGesture", fidelity: "fallback" },
+  give_map: { clip: "TalkGesture", fidelity: "fallback" },
+  wink: { clip: "TalkGesture", fidelity: "fallback" },
 
   // Escucha, asentimiento y atención: el clip de escucha cubre bien la
   // idea de "prestar atención"; mirar alrededor no tiene equivalente, así

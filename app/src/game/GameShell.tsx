@@ -1,7 +1,14 @@
 // Shell del juego (T-001-05, replanteado en T-001-06).
 //
 // Dos estados: contenido que no valida, y episodio en curso. Se entra directo
-// al juego, sin pantalla de inicio. El distintivo de borrador se dibuja aquí,
+// al juego, sin pantalla de inicio.
+//
+// Hay más de un episodio. Cuál se juega lo elige quien acompaña desde la
+// barra de abajo, con el título que cada episodio trae en su propio
+// contenido. No hay progresión automática de uno a otro: el episodio 1
+// declara `ep02.unlocked` como flag persistente, pero SPEC-001 AC-5 solo
+// permite guardar `ep01.completed`, así que encadenarlos de verdad exige
+// primero una decisión de spec sobre qué puede sobrevivir a la sesión. El distintivo de borrador se dibuja aquí,
 // fuera del conmutador, para que esté en los dos (AC-10, Constitución IV).
 //
 // El modo de edad vive aquí porque decide qué nodos y opciones existen (AC-3).
@@ -13,7 +20,7 @@
 import { useState } from "react";
 
 import type { AgeMode } from "../engine";
-import { EPISODIO_01 } from "../shared/episode";
+import { EPISODIOS } from "../shared/episodios";
 import { AvisoDeDesarrollo } from "./dialogue/AvisoDeDesarrollo";
 import { EpisodioEnCurso } from "./dialogue/EpisodioEnCurso";
 import { DistintivoBorrador } from "./ui/DistintivoBorrador";
@@ -26,26 +33,31 @@ const MODOS_DE_EDAD: readonly { readonly id: AgeMode; readonly etiqueta: string 
 
 export default function GameShell() {
   const [ageMode, setAgeMode] = useState<AgeMode>("6-8");
+  const [episodioId, setEpisodioId] = useState(EPISODIOS[0]?.id ?? "");
+
+  const elegido = EPISODIOS.find((candidato) => candidato.id === episodioId) ?? EPISODIOS[0];
 
   // AC-1: si el contenido no valida, un error de desarrollo legible en vez de
   // una pantalla en blanco. La app no arranca el episodio en ese caso.
-  if (!EPISODIO_01.ok) {
+  if (!elegido || !elegido.resultado.ok) {
     return (
       <main className="shell">
         <DistintivoBorrador />
         <AvisoDeDesarrollo
           titulo={TEXTOS_UI.desarrollo.errorDeContenido}
-          diagnosticos={EPISODIO_01.issues.map((issue) => ({
-            code: "navegacion-rota" as const,
-            path: issue.path,
-            message: issue.message,
-          }))}
+          diagnosticos={(elegido?.resultado.ok === false ? elegido.resultado.issues : []).map(
+            (issue) => ({
+              code: "navegacion-rota" as const,
+              path: issue.path,
+              message: issue.message,
+            }),
+          )}
         />
       </main>
     );
   }
 
-  const episodio = EPISODIO_01.episode;
+  const episodio = elegido.resultado.episode;
   const titulo = episodio.localization[episodio.defaultLocale]?.[episodio.titleLocId] ?? episodio.slug;
 
   return (
@@ -60,7 +72,13 @@ export default function GameShell() {
         <h1 className="shell__titulo shell__titulo--juego visualmente-oculto">{titulo}</h1>
       </header>
 
-      <EpisodioEnCurso episodio={episodio} ageMode={ageMode} alCambiarEdad={setAgeMode} />
+      <EpisodioEnCurso
+        episodio={episodio}
+        ageMode={ageMode}
+        alCambiarEdad={setAgeMode}
+        episodioId={elegido.id}
+        alCambiarEpisodio={setEpisodioId}
+      />
     </main>
   );
 }
@@ -89,5 +107,44 @@ export function SelectorDeEdad({
         </label>
       ))}
     </fieldset>
+  );
+}
+
+/**
+ * Control de quien acompaña: qué episodio se juega. Los títulos salen del
+ * contenido de cada episodio, no de la interfaz.
+ */
+export function SelectorDeEpisodio({
+  episodioId,
+  alCambiarEpisodio,
+}: {
+  readonly episodioId: string;
+  readonly alCambiarEpisodio: (id: string) => void;
+}) {
+  const disponibles = EPISODIOS.filter((candidato) => candidato.resultado.ok);
+  if (disponibles.length < 2) return null;
+
+  return (
+    <div className="barra-adulto__campo">
+      <label htmlFor="selector-de-episodio">{TEXTOS_UI.adulto.episodio}</label>
+      <select
+        id="selector-de-episodio"
+        value={episodioId}
+        onChange={(evento) => alCambiarEpisodio(evento.target.value)}
+      >
+        {disponibles.map((candidato) => {
+          if (!candidato.resultado.ok) return null;
+          const contenido = candidato.resultado.episode;
+          const titulo =
+            contenido.localization[contenido.defaultLocale]?.[contenido.titleLocId] ??
+            contenido.slug;
+          return (
+            <option key={candidato.id} value={candidato.id}>
+              {titulo}
+            </option>
+          );
+        })}
+      </select>
+    </div>
   );
 }

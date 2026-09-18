@@ -282,6 +282,46 @@ function IconWalkAway(props: IconProps) {
   );
 }
 
+
+/* --- Episodio 2: confianza, lugares del círculo --- */
+
+function IconHeart(props: IconProps) {
+  return (
+    <IconBase nombreAccesible={props.nombreAccesible}>
+      <path d="M12 20s-7-4.5-7-9.5A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.5C19 15.5 12 20 12 20Z" />
+    </IconBase>
+  );
+}
+
+function IconHouse(props: IconProps) {
+  return (
+    <IconBase nombreAccesible={props.nombreAccesible}>
+      <polyline points="4,11 12,4 20,11" />
+      <path d="M6 11v8h12v-8" />
+      <rect x="10" y="14" width="4" height="5" />
+    </IconBase>
+  );
+}
+
+function IconSchool(props: IconProps) {
+  return (
+    <IconBase nombreAccesible={props.nombreAccesible}>
+      <path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4Z" />
+      <path d="M20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6Z" />
+    </IconBase>
+  );
+}
+
+function IconCommunity(props: IconProps) {
+  return (
+    <IconBase nombreAccesible={props.nombreAccesible}>
+      <circle cx="12" cy="8" r="4" />
+      <line x1="12" y1="12" x2="12" y2="20" />
+      <line x1="8" y1="20" x2="16" y2="20" />
+    </IconBase>
+  );
+}
+
 /**
  * Registro tipado: id de icono del contenido -> componente. `icons.test.tsx`
  * afirma que todo icono referenciado por `content/episodes/ep01-saludo.json`
@@ -293,6 +333,7 @@ export const ICONOS = {
   icon_change: IconChange,
   icon_check: IconCheck,
   icon_cloud: IconCloud,
+  icon_community: IconCommunity,
   icon_drop_alert: IconDropAlert,
   icon_eye: IconEye,
   icon_greet_distance: IconGreetDistance,
@@ -301,7 +342,10 @@ export const ICONOS = {
   icon_greet_hug: IconGreetHug,
   icon_greet_no: IconGreetNo,
   icon_greet_wave: IconGreetWave,
+  icon_heart: IconHeart,
+  icon_house: IconHouse,
   icon_question: IconQuestion,
+  icon_school: IconSchool,
   icon_speech_question: IconSpeechQuestion,
   icon_star: IconStar,
   icon_stop_hand: IconStopHand,

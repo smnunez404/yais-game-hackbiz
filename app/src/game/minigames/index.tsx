@@ -17,22 +17,26 @@
 // SPEC-001 manda los minijuegos a SPEC-004; esto es un prototipo para que el
 // episodio se pueda recorrer entero, no la versión final de ninguno.
 
-import type { CastId, LocId, MinigameView } from "../../engine";
+import type { AgeMode, CastId, LocId, MinigameView } from "../../engine";
 
 import { BrujulaCorporal } from "./BrujulaCorporal";
+import { CirculoDeTres } from "./CirculoDeTres";
+import { FichasDeConfianza } from "./FichasDeConfianza";
 import { MiradaLibre } from "./MiradaLibre";
 import { RitmoDeChoque } from "./RitmoDeChoque";
 import { TablasDelPuente } from "./TablasDelPuente";
 
 interface MinijuegoProps {
   readonly vista: MinigameView;
+  /** Hace falta para filtrar fichas y zonas por edad (AC-3). */
+  readonly ageMode: AgeMode;
   readonly texto: (locId: LocId) => string;
   readonly nombreDe: (castId: CastId) => string;
   /** Sin argumento continúa por el `next` del nodo; con uno, va a ese nodo. */
   readonly alTerminar: (nodeId?: string) => void;
 }
 
-export function Minijuego({ vista, texto, nombreDe, alTerminar }: MinijuegoProps) {
+export function Minijuego({ vista, ageMode, texto, nombreDe, alTerminar }: MinijuegoProps) {
   const nodo = vista.node;
 
   switch (nodo.minigameId) {
@@ -49,6 +53,25 @@ export function Minijuego({ vista, texto, nombreDe, alTerminar }: MinijuegoProps
       );
     case "high_five_rhythm":
       return <RitmoDeChoque config={nodo.config} texto={texto} alTerminar={alTerminar} />;
+    case "trust_cards":
+      return (
+        <FichasDeConfianza
+          config={nodo.config}
+          ageMode={ageMode}
+          texto={texto}
+          nombreDe={nombreDe}
+          alTerminar={() => alTerminar()}
+        />
+      );
+    case "circle_of_three":
+      return (
+        <CirculoDeTres
+          config={nodo.config}
+          texto={texto}
+          nombreDe={nombreDe}
+          alTerminar={() => alTerminar()}
+        />
+      );
     case "bridge_planks":
       return (
         <TablasDelPuente config={nodo.config} texto={texto} alTerminar={() => alTerminar()} />

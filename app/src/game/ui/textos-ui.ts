@@ -51,6 +51,7 @@ export const TEXTOS_UI = {
        acompaña» del cierre ponía el mismo texto en dos sitios con dos
        significados distintos. */
     grupoDeEdad: "Grupo de edad",
+    episodio: "Episodio",
   },
 
   cierre: {
