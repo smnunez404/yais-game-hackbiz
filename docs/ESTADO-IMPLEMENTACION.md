@@ -4,10 +4,158 @@ Bitácora de lo que existe de verdad en el repositorio. Se actualiza al cerrar c
 tarea `T-001-*`. Constitución IX: aquí no se declara terminado lo que no está
 verificado, ni se llama producto a un prototipo.
 
-Última actualización: 2026-09-17.
+Última actualización: 2026-09-18.
+
+## Aviso: el contenido se marcó aprobado el 2026-09-18
+
+La responsable del producto declaró aprobados **todos** los guiones que
+estaban marcados y se retiraron los **26** marcadores `review: "VALIDAR"` de
+`content/episodes/ep01-saludo.json` y `ep02-circulo.json`. Los `reviewNote` se
+conservaron como registro de qué se revisó en cada línea.
+
+Lo que dice el resto de esta bitácora sobre marcas pendientes describe el
+estado **anterior** a esa fecha y se deja como historia, no como estado actual.
+Los recuentos que aparecen más abajo (once, quince) nunca fueron exactos: los
+marcadores reales eran 26.
+
+Tres cosas que esto **no** cierra, porque el vault las declara abiertas para un
+revisor distinto del que aprobó:
+
+- `s05_n003` (Luna) — su nota pide revisión por personas con experiencia vivida
+  de discapacidad. `evidencia-psicologica-proteccion.md` §10 dice que ese
+  revisor todavía no existe.
+- `s06_n003` y `s06_f002` (Don Beto, la segunda con `reviewPriority: "critical"`)
+  — además son una pregunta abierta formal de `spec.md`.
+- `EP02_S04_L004` — «no todos los niños tienen un adulto seguro en casa»; el
+  vault lo da por reforzado, no por cerrado.
+
+El distintivo «Borrador no validado» **sigue puesto**, y esto no lo cambia:
+aprobar el guion no es haberlo probado con niñas y niños, que es lo que la
+Constitución IX obliga a declarar.
+
+El mecanismo quedó sin forma verificable: hoy «aprobado» es la ausencia de un
+campo, indistinguible de «nunca se marcó». Un registro positivo
+(`review: "APROBADO"` con quién y cuándo) sería comprobable por `check:safety`;
+está sin hacer.
 
 El informe de la verificación de extremo a extremo, con las medidas tomadas y
 las que faltan, vive en [QA-VERTICAL-SLICE.md](./QA-VERTICAL-SLICE.md).
+
+## Corrección de estado — 2026-09-18
+
+Esta sección **manda sobre lo que digan las secciones de más abajo**. Las
+secciones fechadas son bitácora: se dejan como están porque registran qué se
+hizo y cuándo. Lo que sigue corrige las afirmaciones **en presente** que ya no
+son ciertas, con la ruta donde se comprueba cada una.
+
+Lo que **no** se pudo comprobar al escribir esto: no se ejecutó
+`npm run verify` ni el build. El árbol de trabajo tiene cambios sin commitear
+de varios frentes a la vez, así que ninguna compuerta de calidad se declara
+verde aquí. La última verificación registrada es la de T-001-07 (2026-09-17),
+y sus medidas ya no describen el juego actual (ver
+[QA-VERTICAL-SLICE.md](./QA-VERTICAL-SLICE.md)).
+
+### Afirmaciones que ya no valen
+
+| Dónde lo dice | Qué decía | Qué es cierto el 2026-09-18 | Dónde se comprueba |
+| --- | --- | --- | --- |
+| «Modo inmersivo» | «Tres islas unidas por dos puentes» | **Once islas** en un archipiélago de unos 34 × 34, dos con episodio (`isla-acuerdos` → ep01, `isla-circulo` → ep02) y la isla de partida vacía a propósito | `app/src/game/scene/mundo.ts`, constante `ISLAS` |
+| «Modo inmersivo» | «La cámara sigue al personaje por detrás, sin girar nunca alrededor del mundo» | **Arrastrar gira la cámara.** Un gesto sobre el suelo empieza como candidato a toque y pasa a arrastre al superar 12 px | `app/src/game/scene/orbita-con-puntero.ts` |
+| «Modo inmersivo» | «La app abre en la primera línea del episodio» | La app abre en **mundo abierto**: se camina y las misiones están en islas lejanas. El episodio empieza al acercarse al punto de encuentro de su isla | `app/src/game/GameShell.tsx`, `app/src/game/scene/EscenaLibre.tsx` |
+| «Prototipo: control del personaje» y «Lo que sigue sin hacer» | «Caminar no dispara nada del guion»; «hace falta un modelo espacial en `content/`, que hoy no existe» | **Ya existe.** `content/encuentros/isla-encuentros.json` ancla personajes a coordenadas (`isla` + `anclaje`) y acercarse dispara la conversación. Las misiones también se disparan por cercanía | `app/src/engine/encuentros.ts`, `app/src/game/scene/cercania.ts`, `app/src/game/scene/encuentros-del-mundo.ts` |
+| «Prototipo: control del personaje» | «W, A, S, D o tocando el suelo» como única entrada | Hay además **joystick virtual en pantalla** para tablet y celular, con radio de 44 px y zona muerta de 0,15 | `app/src/game/scene/control-tactil.ts`, `app/src/game/scene/ControlesTactiles.tsx` |
+| «Episodio 2» | «83 textos y **15** marcas `review: "VALIDAR"`, las mismas que el guion señala» | El recuento nunca fue exacto. Entre ep01 y ep02 había **26** marcas y hoy hay **0**: se retiraron el 2026-09-18 (ver el aviso de arriba) | `content/episodes/*.json` |
+| «Pendientes y riesgos abiertos» | «Cuando se implemente `branch` … Mientras tanto el runtime cae siempre a la rama `else`» | `branch` **está implementado**, como dice la sección «Fases completas del episodio» de este mismo archivo. La rama de `s06_b001` es alcanzable | `app/src/engine/condiciones.ts` |
+| «Pendientes y riesgos abiertos» | «Los `setFlags` del nodo `reward` (`s07_rw001`) todavía no se ejecutan» | Se ejecutan, y pasan por `aplicarFlags` como exigía la nota | `app/src/engine/runtime.ts` |
+| Todo el archivo | Elenco 3D = Capi y Tomi | **Los cinco personajes** (Capi, Tomi, Luna, Clara, Beto) tienen modelo 3D servido | `app/src/shared/assets.ts`, `docs/AUDITORIA-ASSETS.md` §1.1 |
+
+### Recuentos inventados
+
+Una auditoría anterior encontró que los números de marcas de revisión de este
+archivo (**once** en las secciones de ep01, **quince** en la de ep02) nunca
+correspondieron a lo que había en `content/`: eran **26** en total. Dos más,
+encontrados al escribir esta sección:
+
+- «Tres islas unidas por dos puentes» (sección «Modo inmersivo»). Son once.
+  El número fue cierto el día que se escribió y quedó sin actualizar.
+- El comentario de cabecera de `app/src/game/scene/mundo.ts` dice «Hay seis
+  islas» mientras el propio archivo declara once. No se corrige aquí porque
+  `app/` está fuera del alcance de este cambio; queda anotado.
+
+No se encontraron otros números sin respaldo. Las medidas del informe de QA
+(pasos, kB, llamadas de dibujo) sí se tomaron, pero describen un build
+anterior a todo lo que sigue.
+
+### Lo que hay hoy y no está descrito en ninguna sección de abajo
+
+**Mundo abierto de once islas.** No se entra a un episodio: se entra al mundo.
+Las dos misiones están en el segundo anillo, a tres islas de la de partida,
+para que explorar sea el juego y la misión sea el destino. Los radios
+caminables van de 1,6 a 2,6 y el modelo de isla es uno solo, reescalado.
+Ruta: `app/src/game/scene/mundo.ts`.
+
+El equipo indica que el archipiélago crecerá a unas 18–20 islas el mismo
+2026-09-18. **No verificado:** al escribir esto el código tiene once.
+
+**Controles táctiles.** Joystick virtual en pantalla para tablet y celular, y
+arrastre para girar la cámara. La matemática vive en módulos puros y probados
+sin WebGL (`control-tactil.ts`, `entrada-tactil.ts`, `orbita-con-puntero.ts`);
+el dibujo, en `ControlesTactiles.tsx`. Es alcance nuevo: AGENTS.md declara que
+el objetivo inmediato es laptop/proyector y que la optimización móvil se mide
+después. **No se ha probado en una tablet ni en un celular reales.**
+
+**Encuentros.** Conversaciones sueltas de 1 a 4 líneas con personajes
+repartidos por el mundo, que aparecen al acercarse. Esquema propio con
+`.strict()` en `app/src/engine/encuentros.ts`: un encuentro no tiene
+decisiones, ni minijuego, ni cierre, y **ninguna clave del esquema escribe en
+`ProgressStore` ni en `sessionVars`**. Contenido en
+`content/encuentros/isla-encuentros.json`: **5 encuentros, 14 líneas**, uno por
+personaje salvo Tomi, que tiene dos.
+
+El estado de revisión de los encuentros es el contrario al de los episodios:
+las **14 líneas** siguen marcadas `review: "VALIDAR"`, con `reviewNote` que
+dice literalmente «Borrador escrito por el equipo, no por Arianna». Ninguna
+está aprobada y ninguna se ha probado con niñas y niños.
+
+**Los cinco personajes en 3D.** Antes se servían dos porque los GLB no cabían
+en el techo de 25 MiB. Caben desde `assets/production/animated/v002`, una
+variante con `KHR_mesh_quantization` que baja la precisión de almacenamiento de
+los atributos de malla sin quitar un triángulo ni un clip: de 31 134 044 B
+(29,69 MiB) a 16 703 564 B (15,93 MiB), **−46 %**. La allowlist completa queda
+en 23,81 MiB de 25 MiB. Las fuentes `v001` no se tocaron y la cadena
+v001 → v002 se verifica por sha256 en las dos direcciones. Medido en
+`docs/AUDITORIA-ASSETS.md` §1.1.
+
+**Salto y caída al agua.** `app/src/game/scene/salto.ts`: impulso y gravedad
+que dan 0,5 s de salto, 0,5 u de altura y 0,8 u de alcance horizontal —
+suficiente para una grieta, no para sustituir un puente. Caerse al agua
+devuelve al último sitio seguro y **no cuenta nada**: no hay vidas, ni contador
+de caídas, ni mensaje de error (Constitución V).
+
+**Relieve del mundo: en curso, no terminado.** El equipo indica que se están
+añadiendo islas a distintas alturas, escaleras y saltos entre piedras. Lo
+verificable hoy: el salto existe, y `mundo.ts` sigue teniendo una sola altura
+de suelo (`ALTURA_DEL_SUELO = 0.2`) y ninguna isla con cota propia. El relieve
+todavía no está en el modelo del mundo.
+
+**Panel del facilitador: aparece en el árbol, sin commitear y sin verificar.**
+`app/src/panel/` existe (`PanelShell.tsx`, `FacilitatorDashboardView.tsx`,
+`CoordinatorDashboardView.tsx`, `MaterialsView.tsx`, `ProtocolModal.tsx`,
+`fixtures/seedData.ts`) y `app/src/App.tsx` pone un botón flotante para entrar.
+`git status` lo da como no rastreado: es trabajo en curso de otro frente. Lo
+que se leyó, sin ejecutarlo:
+
+- Los datos son **semilla inventada** para demo (aulas «3° A», fechas,
+  porcentajes de avance). No sale de ninguna sesión real y nada en la interfaz
+  lo dice.
+- El modelo de datos es **agregado por aula** (`conteoIntegrantes`, no
+  personas). No hay nombre, foto ni identificador de un niño, que es lo que
+  exigen la Constitución I y III. Esto es lectura de `seedData.ts`, no una
+  auditoría del `content-guardian`.
+- `seedData.ts` llama al episodio 2 «El acuerdo del grupo». El título real del
+  guion y del contenido es **«Mi círculo de 3»**.
+- SPEC-002 existe (`specs/002-panel-facilitador/spec.md`), pero **no hay tareas
+  `T-002-*`** y el panel no aparece en ningún tablero de este archivo.
 
 ## Tablero
 
