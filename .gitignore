@@ -17,3 +17,5 @@ app/public/assets/
 
 # Ajustes locales de Claude Code, por máquina.
 .claude/settings.local.json
+# Configuración del servidor de desarrollo: el puerto depende de la máquina.
+.claude/launch.json

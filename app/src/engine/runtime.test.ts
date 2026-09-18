@@ -208,6 +208,35 @@ describe("crearRuntime — navegación", () => {
     expect(runtime.vista().kind).toBe("line");
   });
 
+  it("la decisión conserva la última línea mostrada de su escena", () => {
+    const { runtime } = montar({ startSceneId: "s03_saludo_capi" });
+
+    avanzarHastaParar(runtime);
+    const decision = esperarVista(runtime.vista(), "choice");
+
+    // `s03_n002` es la línea que el guion pone justo antes de la decisión.
+    expect(decision.precedingLine?.node.id).toBe("s03_n002");
+    expect(decision.precedingLine?.text).toBe(textos["EP01_S03_L002"]);
+  });
+
+  it("no arrastra la pregunta de una escena a la siguiente", () => {
+    const { runtime } = montar({ startSceneId: "s03_saludo_capi" });
+    avanzarHastaParar(runtime);
+    runtime.elegir("wave");
+    avanzarHastaParar(runtime);
+    runtime.elegir("keep");
+
+    // Ya en s04: se entra por su primera línea, así que la pregunta previa
+    // de s03 no puede seguir viva.
+    expect(runtime.estado().sceneId).toBe("s04_tomi");
+    runtime.irAEscena("s05_luna");
+    const decisionDeOtraEscena = (() => {
+      avanzarHastaParar(runtime);
+      return esperarVista(runtime.vista(), "choice");
+    })();
+    expect(decisionDeOtraEscena.precedingLine?.scene.id).toBe("s05_luna");
+  });
+
   it("presenta los nodos validados que todavía no tienen interfaz como no implementados", () => {
     const { runtime, diagnosticos } = montar({ startSceneId: "s02_brujula" });
 

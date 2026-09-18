@@ -1,0 +1,342 @@
+/* Estilos del juego (T-001-05). Consumen los tokens de `tokens.css` y la
+   base de `base.css`; aquí no se define ningún color ni medida nueva, solo
+   se componen (AGENTS.md).
+
+   Reglas que se sostienen en todo este archivo:
+   - Ningún texto rasterizado: todo es texto real, seleccionable y escalable.
+   - El color nunca es el único significado: forma, texto e icono acompañan.
+   - Todo control interactivo usa `.objetivo-tactil` (44x44 mínimo, AC-6).
+   - Ninguna animación ni transición: el 2D no las necesita y así AC-7 se
+     cumple por construcción, no por una excepción de `prefers-reduced-motion`.
+   - La retícula pasa a una sola columna en pantallas angostas (375 px es el
+     ancho de prueba de T-001-07). */
+
+/* Texto solo para lectores de pantalla (la región `aria-live` del diálogo).
+   No usa `display: none` ni `visibility: hidden`: eso lo sacaría del árbol
+   de accesibilidad y dejaría de anunciarse. */
+.visualmente-oculto {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Botones ------------------------------------------------------------ */
+
+.boton {
+  border: 2px solid var(--color-acento);
+  border-radius: var(--radio);
+  font-family: inherit;
+  font-size: var(--fuente-tamano-opcion);
+  line-height: var(--fuente-interlineado);
+  cursor: pointer;
+}
+
+/* Contraste --color-acento-texto (blanco) sobre --color-acento: 7.80:1
+   (texto normal, min 4.5:1). */
+.boton--primario {
+  background-color: var(--color-acento);
+  color: var(--color-acento-texto);
+  font-weight: 700;
+}
+
+/* Contraste --color-acento sobre --color-superficie: 7.80:1. */
+.boton--secundario {
+  background-color: var(--color-superficie);
+  color: var(--color-acento);
+}
+
+/* Las opciones de decisión ocupan toda la fila y alinean icono y texto a la
+   izquierda: se leen como una lista, no como una botonera de colores.
+   Contraste --color-texto sobre --color-superficie: 16.20:1. */
+.boton--opcion {
+  inline-size: 100%;
+  justify-content: flex-start;
+  background-color: var(--color-superficie);
+  border-color: var(--color-borde);
+  color: var(--color-texto);
+  text-align: start;
+}
+
+.boton--opcion:hover {
+  border-color: var(--color-acento);
+}
+
+/* --- Pantalla de inicio ------------------------------------------------- */
+
+.inicio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-3);
+  padding: var(--espacio-3);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.inicio__titulo {
+  margin: 0;
+  font-size: var(--fuente-tamano-subtitulo);
+  line-height: var(--fuente-interlineado-titulo);
+}
+
+/* Contraste --color-texto-suave sobre --color-superficie: 8.59:1. */
+.inicio__prologo {
+  margin: 0;
+  color: var(--color-texto-suave);
+}
+
+.inicio__edades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.inicio__edad {
+  cursor: pointer;
+}
+
+/* --- Episodio en curso --------------------------------------------------- */
+
+.episodio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-3);
+}
+
+.episodio__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.episodio__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-1);
+}
+
+.episodio__pausa-texto {
+  margin: 0;
+  color: var(--color-texto-suave);
+  font-size: 1rem;
+}
+
+/* --- Diálogo ------------------------------------------------------------- */
+
+.dialogo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--espacio-2) var(--espacio-3);
+  align-items: start;
+}
+
+.dialogo__globo {
+  grid-column: 2;
+}
+
+.dialogo__hablante {
+  margin: 0 0 var(--espacio-1);
+  color: var(--color-texto-suave);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.dialogo__texto {
+  margin: 0;
+  font-size: var(--fuente-tamano-subtitulo);
+  line-height: var(--fuente-interlineado);
+}
+
+.dialogo__controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  grid-column: 2;
+}
+
+/* --- Personaje ----------------------------------------------------------- */
+
+.personaje {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-1);
+  margin: 0;
+  grid-row: span 2;
+}
+
+.personaje__retrato {
+  inline-size: 8rem;
+  block-size: 8rem;
+  object-fit: contain;
+  background-color: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+/* Sin arte sincronizado: inicial grande, nunca una imagen rota. */
+.personaje__retrato--sin-arte {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-texto-suave);
+  font-size: var(--fuente-tamano-titulo);
+  font-weight: 700;
+}
+
+.personaje__nombre {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* --- Decisiones ---------------------------------------------------------- */
+
+/* La pregunta del guion se queda en pantalla mientras se elige: mismo
+   tamaño que en el globo de diálogo, para que se lea como la misma voz y no
+   como un rótulo de interfaz. */
+.decisiones__pregunta {
+  margin: 0 0 var(--espacio-2);
+}
+
+.decisiones__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* --- Cierre -------------------------------------------------------------- */
+
+.cierre__titulo {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--fuente-tamano-titulo);
+  line-height: var(--fuente-interlineado-titulo);
+}
+
+.cierre__mensaje {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--fuente-tamano-subtitulo);
+}
+
+/* El material del debrief es para la persona adulta que acompaña: se
+   distingue del cierre del niño por borde, fondo y encabezado propio, no
+   solo por color. */
+.cierre__adulto {
+  margin-bottom: var(--espacio-3);
+  padding: var(--espacio-2);
+  background-color: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  color: var(--color-texto-suave);
+}
+
+.cierre__adulto-titulo {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--fuente-tamano-opcion);
+}
+
+.cierre__subtitulo {
+  margin: var(--espacio-2) 0 var(--espacio-1);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* --- Avisos y herramientas de desarrollo --------------------------------- */
+
+/* Mismo lenguaje visual que el distintivo de borrador: si aparece en una
+   demo, se reconoce de inmediato como andamiaje.
+   Contraste --color-borrador-texto sobre --color-borrador-fondo: 10.77:1. */
+.aviso-desarrollo,
+.herramientas-desarrollo {
+  padding: var(--espacio-2);
+  background-color: var(--color-borrador-fondo);
+  border: 2px dashed var(--color-borrador-borde);
+  border-radius: var(--radio);
+  color: var(--color-borrador-texto);
+}
+
+.aviso-desarrollo__etiqueta,
+.herramientas-desarrollo__etiqueta {
+  margin: 0 0 var(--espacio-1);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.aviso-desarrollo__titulo {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--fuente-tamano-opcion);
+  line-height: var(--fuente-interlineado-titulo);
+}
+
+.aviso-desarrollo__lista {
+  margin: 0 0 var(--espacio-2);
+  padding-inline-start: var(--espacio-3);
+  font-size: 1rem;
+}
+
+.herramientas-desarrollo__campo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+
+.herramientas-desarrollo__campo select {
+  min-block-size: var(--objetivo-tactil-min);
+  padding: var(--espacio-1);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+/* --- Pantallas angostas (proyector vertical, tablet, 375 px) -------------- */
+
+@media (max-width: 30rem) {
+  .dialogo {
+    grid-template-columns: 1fr;
+  }
+
+  .dialogo__globo,
+  .dialogo__controles {
+    grid-column: 1;
+  }
+
+  .personaje {
+    grid-row: auto;
+    flex-direction: row;
+  }
+
+  .personaje__retrato {
+    inline-size: 5rem;
+    block-size: 5rem;
+  }
+
+  .boton {
+    inline-size: 100%;
+  }
+}

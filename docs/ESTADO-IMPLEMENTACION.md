@@ -14,13 +14,12 @@ verificado, ni se llama producto a un prototipo.
 | T-001-02 — Sincroniza y registra los assets reales | hecho | `npm run verify` verde |
 | T-001-03 — Valida el episodio completo | hecho | `npm run verify` verde |
 | T-001-04 — Motor puro y persistencia mínima | hecho | `npm run verify` verde |
-| T-001-05 — Experiencia 2D accesible | parcial | — |
+| T-001-05 — Experiencia 2D accesible | hecho | `npm run verify` verde |
 | T-001-06 — Escena 3D con Capi y Tomi | parcial | — |
 | T-001-07 — Verificación de extremo a extremo | pendiente | — |
 
-«Parcial» es literal: de T-001-05 existen solo la base visual (19 iconos SVG y
-los tokens de color con contraste medido) y de T-001-06 solo el mapa de
-intenciones de animación. No hay pantalla de juego ni escena 3D todavía.
+«Parcial» es literal: de T-001-06 existe solo el mapa de intenciones de
+animación. No hay escena 3D todavía.
 
 ## T-001-01 — Scaffold y compuerta de calidad
 
@@ -124,6 +123,77 @@ significa que el minijuego esté hecho.
   Don Beto (s06), que hoy cae siempre a la rama `else`.
 - No ejecuta ningún minijuego.
 - No existe interfaz: nada de esto se ha visto en pantalla todavía (T-001-05).
+
+## T-001-05 — Experiencia 2D accesible
+
+Hecho. `npm run verify` verde; 84 tests en 8 archivos. La ruta 2D es la
+experiencia base, no un placeholder del 3D: hoy es la única que existe y es la
+que queda si WebGL falla (AC-8).
+
+**Qué se puede hacer en pantalla**
+
+Elegir modo de edad, empezar, avanzar líneas, repetir una línea, elegir un
+saludo, volver a elegirlo cuantas veces se quiera, parar en cualquier momento
+y llegar al cierre con el pie de debrief para la persona adulta.
+
+**Decisiones**
+
+- El contenido se importa como módulo (`shared/episode.ts`) y se valida una vez
+  al cargar. La demo no hace ninguna petición de red: comprobado en el
+  navegador, cero recursos fuera de `localhost`.
+- Ningún texto que un niño lee está escrito en código. La pregunta que encabeza
+  una decisión es la línea del guion que la precede (`s03_n002`, «¿Cómo quieres
+  saludarme?»), que el motor entrega en `ChoiceView.precedingLine` y la interfaz
+  mantiene en pantalla mientras se elige. La primera versión ponía un rótulo
+  propio ahí y la revisión de content-guardian lo bloqueó: es contenido infantil
+  fuera de `content/` (Constitución IV).
+- `game/ui/textos-ui.ts` concentra los rótulos de interfaz que el contenido no
+  declara («Continuar», «Volver a jugar»). Cuando el contenido pase la revisión
+  de Arianna, se mueven a `localization` de una vez.
+- El foco viaja al control principal de cada pantalla (`data-principal`) en cada
+  transición: con teclado basta Enter para recorrer el saludo entero.
+- La línea vive en una región `aria-live`; «Repetir lo que dijo» la vacía y la
+  vuelve a llenar para que un lector de pantalla la relea. Todavía no hay audio
+  locutado (SPEC-001 lo deja fuera), así que eso es literalmente lo que
+  «repetir» puede hacer hoy; en T-001-06 volverá a disparar el gesto.
+- Cero animaciones y cero transiciones en el 2D: AC-7 se cumple por
+  construcción, no por una excepción de `prefers-reduced-motion`.
+- Selector de escena y botón de saltar nodos sin interfaz existen solo con
+  `import.meta.env.DEV`. Comprobado sobre el bundle de producción: sus clases y
+  los diagnósticos con rutas del JSON no aparecen en `dist/`.
+
+**Comprobado en el navegador (Chromium, laptop)**
+
+- El episodio corre de punta a punta usando el selector de escena; el saludo de
+  Capi ofrece cinco opciones en 6-8 y seis en 9-12.
+- Al terminar, `localStorage` contiene exactamente `yais.ep01.completed=true`;
+  `sessionStorage` y las cookies quedan vacías, también a mitad de episodio.
+- Cero peticiones fuera de `localhost`. El poster de Capi se sirve local.
+- A 375 px la retícula pasa a una columna, sin desbordes.
+- Bundle: 349 kB (104 kB gzip) frente a los 191 kB (60 kB) de solo React. La
+  diferencia es `zod` más el JSON del episodio. Medido, no optimizado: la
+  alternativa evidente —validar en build y publicar el JSON ya validado— se
+  evalúa cuando haya una medida en el hardware real del aula.
+
+**Lo que no hace y hay que decidir**
+
+- En un build de producción el episodio se detiene en el minijuego de
+  `s02_brujula`: el recorrido obligatorio del contenido pasa por cuatro
+  minijuegos que SPEC-001 deja fuera del alcance (van en SPEC-004). Hoy el
+  saludo de Capi y el nodo `end` solo se alcanzan en `npm run dev` con el
+  selector de escena. Es una contradicción entre el contenido y el alcance de la
+  spec, no un olvido de implementación, y la decisión es del equipo: demostrar
+  en modo desarrollo, hacer opcionales los minijuegos en el contenido, o
+  adelantar SPEC-004.
+- El contenido declara `reviewPolicy.blockProductionIfPending: true` y diez
+  nodos con `review: "VALIDAR"`. Nada de eso se aplica todavía: el único
+  resguardo es el distintivo global.
+- El material del debrief (`adultOnly: true`) se muestra en la misma pantalla
+  proyectada que mira el curso. Es lo que pide SPEC-001, pero conviene
+  confirmarlo con Arianna.
+- La medida real de 44×44, el contraste en proyector y el comportamiento con
+  lector de pantalla se revisan en T-001-07; los tests solo comprueban que
+  ningún control se saltó la clase que aplica el objetivo táctil.
 
 ## Pendientes y riesgos abiertos
 

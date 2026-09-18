@@ -109,6 +109,18 @@ export interface ChoiceView {
   readonly node: ChoiceNode;
   /** Solo las opciones visibles en el modo de edad activo (AC-3). */
   readonly options: readonly ChoiceOptionView[];
+  /**
+   * Última línea mostrada en esta escena, o `null` si se entró directo a la
+   * decisión. Es la pregunta que el guion hace justo antes (por ejemplo
+   * `s03_n002`, «¿Cómo quieres saludarme?»), y viaja con la decisión para
+   * que la UI pueda mantenerla en pantalla mientras el niño elige: si no,
+   * la interfaz tendría que escribir una pregunta propia, y eso sería
+   * contenido infantil fuera de `content/` (AGENTS.md, Constitución IV).
+   *
+   * Se olvida al entrar a otra escena: nunca arrastra la pregunta de la
+   * escena anterior.
+   */
+  readonly precedingLine: LineView | null;
 }
 
 export interface EndView {
@@ -239,6 +251,7 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
   let escenaActual: Scene = escenaInicial;
   let idNodoActual: NodeId = escenaInicial.entryNode;
   let completado = false;
+  let ultimaLineaDeLaEscena: LineView | null = null;
   const variablesDeSesion = new Map<SessionVarId, string | boolean>();
   const escuchas = new Set<() => void>();
 
@@ -327,6 +340,7 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
 
   function entrarAEscena(scene: Scene): void {
     escenaActual = scene;
+    ultimaLineaDeLaEscena = null;
     const path = `scenes.${scene.id}.onEnter`;
     aplicarFlags(scene.onEnter.setFlags ?? [], `${path}.setFlags`);
     for (const clave of Object.keys(scene.onEnter.setProgress ?? {})) {
@@ -352,8 +366,8 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
 
   function vistaDeNodo(scene: Scene, node: EpisodeNode): RuntimeView {
     switch (node.type) {
-      case "line":
-        return {
+      case "line": {
+        const vista: LineView = {
           kind: "line",
           scene,
           node,
@@ -361,6 +375,9 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
           speakerName: nombreDe(node.speaker),
           text: texto(node.locId),
         };
+        ultimaLineaDeLaEscena = vista;
+        return vista;
+      }
       case "choice": {
         const visibles = node.options
           .filter((option) => isVisibleForAgeMode(option.ageModes, ageMode))
@@ -379,7 +396,13 @@ export function crearRuntime(episode: EpisodeContent, options: RuntimeOptions): 
             }),
           };
         }
-        return { kind: "choice", scene, node, options: visibles };
+        return {
+          kind: "choice",
+          scene,
+          node,
+          options: visibles,
+          precedingLine: ultimaLineaDeLaEscena,
+        };
       }
       case "end":
         return { kind: "end", scene, node };
