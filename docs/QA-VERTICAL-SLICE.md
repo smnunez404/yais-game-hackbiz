@@ -107,12 +107,12 @@ aula.
 
 ## Decisiones abiertas que no son técnicas
 
-1. **En un build de producción el episodio se detiene en el minijuego de
-   `s02_brujula`.** El recorrido obligatorio del contenido pasa por cuatro
-   minijuegos que SPEC-001 deja fuera de alcance. Hoy el saludo y el cierre solo
-   se alcanzan en desarrollo con el selector de escena. Decide el equipo:
-   demostrar en modo desarrollo, hacer opcionales los minijuegos en el
-   contenido, o adelantar SPEC-004.
+1. ~~**En un build de producción el episodio se detiene en el minijuego de
+   `s02_brujula`.**~~ Cerrado después de esta verificación: los cuatro
+   minijuegos están implementados como prototipo y el episodio se recorre
+   entero. Lo que queda por decidir es de fondo: eso adelanta trabajo que
+   SPEC-001 manda a SPEC-004, y la versión final de cada minijuego necesita su
+   propia spec.
 2. **`reviewPolicy.blockProductionIfPending: true` no está implementado** y hay
    once marcas `review: "VALIDAR"` en el contenido. El único resguardo es el
    distintivo global.

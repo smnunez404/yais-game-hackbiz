@@ -212,14 +212,12 @@ Pendiente, medido pero no resuelto:
 
 **Lo que no hace y hay que decidir**
 
-- En un build de producción el episodio se detiene en el minijuego de
-  `s02_brujula`: el recorrido obligatorio del contenido pasa por cuatro
-  minijuegos que SPEC-001 deja fuera del alcance (van en SPEC-004). Hoy el
-  saludo de Capi y el nodo `end` solo se alcanzan en `npm run dev` con el
-  selector de escena. Es una contradicción entre el contenido y el alcance de la
-  spec, no un olvido de implementación, y la decisión es del equipo: demostrar
-  en modo desarrollo, hacer opcionales los minijuegos en el contenido, o
-  adelantar SPEC-004.
+- ~~En un build de producción el episodio se detiene en el minijuego de
+  `s02_brujula`.~~ **Cerrado**: los cuatro minijuegos están implementados como
+  prototipo y el episodio se recorre entero sin herramientas de desarrollo (ver
+  «Fases completas del episodio»). Sigue pendiente la decisión de fondo: eso
+  adelanta trabajo que SPEC-001 manda a SPEC-004, y la versión final de cada
+  minijuego necesita su spec.
 - El contenido declara `reviewPolicy.blockProductionIfPending: true` y once
   marcas `review: "VALIDAR"`: diez nodos y una más dentro de la configuración
   del minijuego de `s02_brujula`, que se verá cuando exista SPEC-004. Nada de
@@ -529,6 +527,64 @@ correctas. Van con `.shell--juego` delante.
   niño lee y tiene que venir de `content/` aprobado.
 - En pantalla angosta el mundo casi no se ve: los paneles ocupan lo que hay.
   El objetivo declarado es laptop y proyector, así que se deja anotado.
+
+## Fases completas del episodio
+
+Fecha: 2026-09-17. Más allá del alcance de SPEC-001, que manda los minijuegos
+a SPEC-004; esto es un prototipo para que el episodio se pueda recorrer
+entero, no la versión final de ninguno.
+
+**El bloqueo que se cerró.** Hasta aquí, un build de producción moría en el
+minijuego de `s02_brujula` y el saludo de Capi solo se alcanzaba con el
+selector de escena de desarrollo. Ahora el episodio se recorre de la primera
+línea al cierre: 70 pasos medidos en el navegador, sin herramientas de
+desarrollo, y al terminar el almacenamiento tiene una sola clave.
+
+**Ramas condicionales**
+
+`condiciones.ts` evalúa las condiciones que declara el contenido. Es puro,
+tiene su tabla de casos y solo puede consultar dos cosas: el modo de edad y
+las variables de sesión, que viven en memoria. Deliberadamente **no** puede
+consultar el progreso persistido: si una rama del guion dependiera de lo que
+quedó guardado, `ep01.completed` dejaría de ser un booleano de progreso y
+pasaría a ser un perfil.
+
+Consecuencia que hay que mirar de frente: la rama de `s06_b001` ya no cae
+siempre al `else`. En modo 9-12, y si el saludo a Don Beto no fue un abrazo,
+el episodio llega a `s06_n003` y siguientes, que están marcados
+`review: "VALIDAR"` y son el punto más delicado del guion. Antes eran
+inalcanzables por accidente; ahora son alcanzables a propósito, con el
+distintivo de borrador como único resguardo.
+
+**Los cuatro minijuegos**, uno por archivo en `game/minigames/`:
+
+| Minijuego | Escena | Qué hace |
+| --- | --- | --- |
+| Mirada libre | s01 | Deja mirar la isla y seguir cuando se quiera. Sin tiempo. |
+| Brújula corporal | s02 | Tres tarjetas del contenido, tres respuestas, cualquiera válida. |
+| Chocar las manos | s04 | Se choca las veces que dice el guion. Parar, siempre. |
+| Armar el puente | s07 | Tres acuerdos, en cualquier orden. |
+
+Lo que comparten, y no es negociable:
+
+- **Ninguno se puede perder.** No hay acierto, error, puntaje, contador ni
+  tiempo (Constitución V). No es una decisión de diseño de esta capa: el
+  propio contenido lo declara con `anyAnswerValid`, `anyOrderValid` y
+  `speedRequired: false`.
+- **Todo el texto sale de `content/`.** Tarjetas, respuestas, la reacción de
+  Capi y el botón de parar, con su texto, su tecla y su destino.
+- **Se puede parar siempre.**
+
+La celebración (`reward`) es cosmética y por completar, nunca por acertar: el
+contenido lo declara (`conditionalOnPerformance: false`) y el motor lo sostiene
+pasando sus flags por la misma allowlist que todo lo demás, que los ignora.
+
+**Lo escrito en código y pendiente de validar**
+
+Cuatro rótulos de acción: «Tu brújula», «Chocar las manos», «Arma el puente» y
+«¡Lo lograron juntos!». Son de interfaz —nombran lo que hay que hacer, no lo
+que alguien dice—, pero un niño los lee, así que deberían mudarse a
+`localization` cuando el contenido pase la revisión de Arianna.
 
 ## Pendientes y riesgos abiertos
 
