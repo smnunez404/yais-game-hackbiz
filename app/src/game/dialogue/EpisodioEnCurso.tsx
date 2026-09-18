@@ -49,6 +49,26 @@ interface EpisodioEnCursoProps {
   readonly alSalirAlMundo: () => void;
 }
 
+/**
+ * Oculta el selector de «Grupo de edad» de la barra del adulto en lo que se
+ * despliega, a pedido explícito para la demo del 2026-09-18.
+ *
+ * Importante, y por eso no es simplemente `false`: `GameShell.tsx` no tiene
+ * ninguna otra pantalla para elegir el modo de edad («al juego, sin pantalla
+ * de inicio», dice su propio comentario de cabecera; `ageMode` arranca fijo
+ * en `"6-8"`). Este control de aquí es la ÚNICA forma de llegar a 9-12 en
+ * toda la app, no un atajo redundante. Ocultarlo con un `false` a secas
+ * dejaría el juego encerrado en 6-8 para siempre, sin manera de volver a ver
+ * el contenido de 9-12 ni de probar el filtro de edad (AC-3) jugando.
+ *
+ * Por eso se ata a `import.meta.env.DEV`: oculto en lo que se construye para
+ * producción (lo que ve quien presenta el demo), disponible en
+ * `npm run dev` y en los tests, donde `DEV` es `true`. Si la demo necesita
+ * mostrar 9-12 en algún momento, esto no alcanza — avisar antes de la demo,
+ * no durante.
+ */
+const MOSTRAR_SELECTOR_DE_EDAD_EN_LA_BARRA = import.meta.env.DEV;
+
 /** Los diagnósticos se quedan en el dispositivo y solo en desarrollo (AC-9). */
 function registrarDiagnostico(diagnostico: RuntimeDiagnostic): void {
   if (import.meta.env.DEV) {
@@ -230,13 +250,17 @@ export function EpisodioEnCurso({
               <p className="episodio__pausa-texto">{runtime.texto(pausa.promptLocId)}</p>
 
               {/* El grupo de edad se toca una vez por sesión: plegado, deja de
-                  competir por atención con lo que sí se usa en cada línea. */}
-              <details className="barra-adulto__ajustes">
-                <summary className="objetivo-tactil barra-adulto__resumen">
-                  {TEXTOS_UI.adulto.grupoDeEdad}
-                </summary>
-                <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
-              </details>
+                  competir por atención con lo que sí se usa en cada línea.
+                  Ver `MOSTRAR_SELECTOR_DE_EDAD_EN_LA_BARRA` arriba: oculto
+                  para la demo. */}
+              {MOSTRAR_SELECTOR_DE_EDAD_EN_LA_BARRA ? (
+                <details className="barra-adulto__ajustes">
+                  <summary className="objetivo-tactil barra-adulto__resumen">
+                    {TEXTOS_UI.adulto.grupoDeEdad}
+                  </summary>
+                  <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
+                </details>
+              ) : null}
             </>
           )}
 

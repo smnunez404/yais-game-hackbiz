@@ -66,6 +66,14 @@ describe("EpisodioEnCurso — barra de quien acompaña", () => {
       />,
     );
 
+    // El selector de «Grupo de edad» se muestra aquí porque los tests corren
+    // con `import.meta.env.DEV` en `true`, igual que `npm run dev`. En el
+    // build de producción que se despliega está apagado
+    // (`MOSTRAR_SELECTOR_DE_EDAD_EN_LA_BARRA` en `EpisodioEnCurso.tsx`), a
+    // pedido explícito para la demo del 2026-09-18 — pero sigue disponible
+    // aquí porque es la ÚNICA forma de llegar al modo 9-12 en toda la app
+    // (no hay pantalla de inicio separada, ver `GameShell.tsx`), y varios
+    // tests de AC-3 dependen de poder cambiarlo.
     expect(screen.getByText(texto(episodio1, "UI_PAUSE_PROMPT"))).toBeVisible();
     expect(screen.getByText(TEXTOS_UI.adulto.grupoDeEdad)).toBeVisible();
     expect(screen.getByRole("button", { name: texto(episodio1, "UI_PAUSE_MAP") })).toBeVisible();
