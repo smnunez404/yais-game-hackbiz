@@ -433,6 +433,65 @@ solo mientras alguien se mueve de verdad.
   conversación guiada, y esa decisión no es de implementación.
 - Sin spec, lo de arriba puede cambiar entero.
 
+### Modo inmersivo: se entra directo y el mundo es la pantalla
+
+Reorganización de la presentación pedida por el equipo, después de comparar
+con las láminas de `assets/concepts`. Sigue siendo presentación: no toca el
+contenido, ni el motor, ni la ruta accesible.
+
+- **Fuera la pantalla de inicio.** La app abre en la primera línea del
+  episodio. El grupo de edad pasa a la barra de quien acompaña, abajo, porque
+  es una decisión del adulto y no del niño (AC-3). Cambiarlo reinicia el
+  episodio: alterar a media conversación qué opciones se ven sería peor que
+  volver a empezar.
+- **El mundo ocupa la ventana** y los paneles flotan encima. Siguen siendo
+  opacos: el texto conserva su contraste medido y no depende de lo que haya
+  detrás. El distintivo de borrador va arriba a la izquierda, por encima de
+  todo lo demás (AC-10).
+- **Tres islas unidas por dos puentes.** Hay un solo modelo de isla, así que
+  se repite a distintas escalas; la variedad del archipiélago de la lámina
+  `isla-acuerdos-environment-sheet.png` es trabajo de arte.
+- **La cámara sigue al personaje** por detrás, sin girar nunca alrededor del
+  mundo: la orientación es siempre la misma, así que no hay desorientación.
+  Apunta casi a sus pies para que quede por encima del panel de diálogo.
+- **Se puede cruzar de isla en isla.** Por dónde se puede andar lo decide
+  `mundo.ts`, que es puro y está probado: tres círculos y dos rectángulos. El
+  decorado se dibuja a partir de esos mismos datos, así que el suelo que se ve
+  y el suelo que se pisa no pueden separarse.
+
+**Lo que encontraron los tests, no una revisión**
+
+- El puente este no llegaba a la isla: quedaba un salto de agua en medio. Hay
+  un test que comprueba que cada puente toca de verdad las dos orillas, y otro
+  que recorre el archipiélago de punta a punta muestreando cada 10 cm.
+- Proyectar un punto al borde de una isla lo dejaba fuera por el error de la
+  coma flotante, así que el sitio al que se acababa de mandar al personaje
+  resultaba no ser caminable.
+- Los puentes estaban en la línea que une los centros de las islas, no a la
+  altura por la que se anda: caminar hacia la isla de al lado terminaba en el
+  borde sin explicación. Ahora coinciden.
+
+**Lo que encontró el navegador**
+
+- El lienzo, al estar fijo, se pintaba por encima de los paneles: el orden de
+  pintado de CSS no es el orden del HTML.
+- Al desmontarse el lienzo —o al recargar en caliente— el navegador dispara
+  `webglcontextlost`, y el manejador retiraba la escena para siempre. Ahora se
+  conecta y desconecta en un efecto, así que React lo limpia antes de quitar
+  el nodo.
+- `prefers-reduced-motion` se leía una sola vez al montar. Ahora se escucha
+  (`useMenosMovimiento`), que es lo que había pedido la revisión de
+  accesibilidad: si hay que activarlo a mitad de una demo, se aplica solo.
+
+**Lo que sigue sin hacer**
+
+- Caminar no dispara nada del guion. Sigue haciendo falta el modelo espacial
+  en `content/`, y sigue yendo por spec.
+- Nada indica en pantalla que se puede caminar: ese rótulo es texto que un
+  niño lee y tiene que venir de `content/` aprobado.
+- En pantalla angosta el mundo casi no se ve: los paneles ocupan lo que hay.
+  El objetivo declarado es laptop y proyector, así que se deja anotado.
+
 ## Pendientes y riesgos abiertos
 
 - Assets versionados en git normal (222 MB). Cada versión futura de un GLB de

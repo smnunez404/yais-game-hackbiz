@@ -93,10 +93,14 @@ lo que queda no es de código:
 
 ## Añadido después de esta verificación
 
-Hay un **prototipo de control del personaje** (caminar con W, A, S, D o tocando
-el suelo) que no forma parte de SPEC-001 y no está cubierto por las medidas de
-arriba. No dispara líneas, no cambia de escena y no afecta a ninguna decisión:
-el episodio se juega igual sin usarlo. Queda descrito en
+Después de esta verificación, el equipo pidió entrar directo al juego y poder
+caminar entre islas. Eso cambió la presentación —sin pantalla de inicio, el
+mundo ocupa la ventana, tres islas unidas por puentes, cámara que sigue al
+personaje— y añadió un **prototipo de control** (W, A, S, D o tocando el
+suelo). Nada de eso forma parte de SPEC-001 ni está cubierto por las medidas de
+arriba, y el recorrido, el almacenamiento y la red no cambiaron: caminar no
+dispara líneas, no cambia de escena y no afecta a ninguna decisión, así que el
+episodio se juega igual sin usarlo. Queda descrito en
 [ESTADO-IMPLEMENTACION.md](./ESTADO-IMPLEMENTACION.md); si se queda, necesita
 spec propia, un rótulo aprobado que diga que se puede caminar, y probarse en el
 aula.
