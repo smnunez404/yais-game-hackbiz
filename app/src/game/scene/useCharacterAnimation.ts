@@ -9,9 +9,22 @@
 //   mientras dure la situación.
 // - Las transiciones son cruzadas (`crossFadeFrom`), nunca cortes secos.
 //
-// Con `prefers-reduced-motion` no se reproduce nada: el personaje se queda en
-// el primer cuadro de `Idle`, quieto (AC-7). No es una animación más lenta:
-// es ninguna.
+// Con `prefers-reduced-motion` se congela todo lo AMBIENTAL —el bucle de
+// reposo, los gestos decorativos, `Listen`— en el primer cuadro de `Idle`
+// (AC-7). Lo que NO se congela es la locomoción que pide quien juega: desde
+// que `useControlDelJugador.ts` dejó de bloquear el movimiento con esta
+// preferencia activa, el `Group` del personaje sí se desplaza cuadro a
+// cuadro (`useCharacterWalk.ts`), y si aquí se seguía forzando `Idle`
+// congelado el resultado era un personaje deslizándose sobre el suelo sin
+// mover las patas —el reporte original de este archivo: "el capibara no
+// tiene activado su efecto de caminar"—. AC-7 pide apagar lo que se mueve
+// SOLO, no la respuesta a una acción deliberada; un personaje que se desliza
+// es un error más visible que uno que camina, así que la locomoción
+// (`Walk`/`Roll`) se anima igual con o sin la preferencia. `useCharacterWalk`
+// ya garantiza que esto no reintroduce movimiento ambiental: un personaje sin
+// `comandoDelJugador` nunca recibe una orden con la preferencia activa, así
+// que nunca llega aquí pidiendo locomoción sin que alguien la haya pedido de
+// verdad.
 //
 // El hook avisa hacia arriba cuándo hay movimiento (`alCambiarActividad`)
 // para que `GameCanvas` pueda apagar el bucle de render cuando la escena
@@ -70,6 +83,14 @@ const CLIP_DE_REPOSO: RuntimeClip = "Idle";
  */
 const CLIPS_QUE_MANTIENEN_VIVA_LA_ESCENA: readonly RuntimeClip[] = ["Listen", "Walk", "Roll"];
 
+/**
+ * Clips de locomoción real. Es la única excepción al congelamiento de
+ * `prefers-reduced-motion`: representan un desplazamiento que ya está
+ * ocurriendo en el `Group` del personaje (`useCharacterWalk.ts`), nunca un
+ * gesto decorativo ni un bucle de reposo. Ver el comentario de cabecera.
+ */
+const CLIPS_DE_LOCOMOCION: readonly RuntimeClip[] = ["Walk", "Roll"];
+
 type AccionesPorNombre = Partial<Record<string, AnimationAction | null>>;
 
 interface OpcionesDeAnimacion {
@@ -98,8 +119,9 @@ export function useCharacterAnimation({
 
   useEffect(() => {
     const reposo = acciones[CLIP_DE_REPOSO];
+    const esLocomocionReal = CLIPS_DE_LOCOMOCION.includes(clip);
 
-    if (menosMovimiento) {
+    if (menosMovimiento && !esLocomocionReal) {
       // Quieto en la pose de reposo. `reset()` deja el primer cuadro y
       // `paused` evita que el mixer avance aunque algo pida un render.
       mixer.stopAllAction();
@@ -111,6 +133,13 @@ export function useCharacterAnimation({
       alCambiarActividad(false);
       return;
     }
+
+    // `menosMovimiento && esLocomocionReal`: quien juega está caminando de
+    // verdad (ver comentario de cabecera). Se sigue el camino normal de abajo
+    // sin ninguna rama especial: el clip de locomoción se anima en bucle
+    // igual que sin la preferencia activa, y al soltar la tecla
+    // `useCharacterWalk` deja de pedir este clip, así que el próximo efecto
+    // vuelve a congelar en `Idle`.
 
     const destino = acciones[clip] ?? reposo;
     if (!destino) return;

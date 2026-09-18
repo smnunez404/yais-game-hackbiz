@@ -25,7 +25,7 @@ import {
 } from "../../engine";
 import { PRELOADED_CHARACTER_IDS } from "../../shared/assets";
 import { crearAlmacenamientoDelNavegador } from "../../shared/browser-storage";
-import { SelectorDeEdad, SelectorDeEpisodio } from "../GameShell";
+import { SelectorDeEdad } from "../GameShell";
 import { EscenaDelEpisodio } from "../scene/EscenaDelEpisodio";
 import { soportaWebGL } from "../scene/soporte-webgl";
 import { TEXTOS_UI } from "../ui/textos-ui";
@@ -41,8 +41,12 @@ interface EpisodioEnCursoProps {
   readonly ageMode: AgeMode;
   /** Cambiarlo reinicia el episodio: ver el comentario de `GameShell`. */
   readonly alCambiarEdad: (modo: AgeMode) => void;
-  readonly episodioId: string;
-  readonly alCambiarEpisodio: (id: string) => void;
+  /**
+   * Dejar el episodio y volver al mundo. Es lo que hace el control de parar:
+   * parar nunca lleva a una pantalla de castigo ni pierde nada, porque no hay
+   * nada que perder (`persistChoices: false`, Constitución V).
+   */
+  readonly alSalirAlMundo: () => void;
 }
 
 /** Los diagnósticos se quedan en el dispositivo y solo en desarrollo (AC-9). */
@@ -56,8 +60,7 @@ export function EpisodioEnCurso({
   episodio,
   ageMode,
   alCambiarEdad,
-  episodioId,
-  alCambiarEpisodio,
+  alSalirAlMundo,
 }: EpisodioEnCursoProps) {
   // Un runtime por sesión de juego. Cambiar el modo de edad empieza una
   // sesión nueva: no se puede cambiar a mitad de episodio.
@@ -126,7 +129,11 @@ export function EpisodioEnCurso({
   );
 
   const pausa = episodio.globalUi.pause;
-  const opcionDeParar = pausa.options.find((opcion) => opcion.id === "quit");
+  /* `map`, no `quit`: el botón devuelve al mundo, y el guion ya trae para eso
+     una opción con su propio texto validado. Usar el de «Terminar por hoy»
+     habría sido prometer que la sesión acaba cuando lo que hace es volver al
+     mapa (revisión de content-guardian). */
+  const opcionDeVolver = pausa.options.find((opcion) => opcion.id === "map");
 
   return (
     <section className="episodio" aria-label={TEXTOS_UI.dialogo.regionEpisodio}>
@@ -167,7 +174,7 @@ export function EpisodioEnCurso({
             vista={vista}
             ageMode={ageMode}
             texto={runtime.texto}
-            alVolverAJugar={runtime.reiniciar}
+            alVolverAJugar={alSalirAlMundo}
           />
         ) : null}
 
@@ -198,7 +205,11 @@ export function EpisodioEnCurso({
           quitar la barra entera: el momento de una decisión difícil es
           justamente cuando hace falta poder irse, y el contenido declara
           `pause.alwaysVisible: true` (Constitución V). */}
-      {pausa.alwaysVisible ? (
+      {/* En el cierre no se dibuja: el episodio ya terminó, «Podemos parar
+          cuando quieras» no significa nada ahí, y la pantalla de cierre ya
+          trae su propio control para volver al mapa. Dejarlo ponía el mismo
+          botón dos veces en la misma pantalla. */}
+      {pausa.alwaysVisible && vista.kind !== "end" ? (
         <footer
           className={
             vista.kind === "choice" ? "episodio__pie barra-adulto barra-adulto--minima" : "episodio__pie barra-adulto"
@@ -215,10 +226,6 @@ export function EpisodioEnCurso({
                   {TEXTOS_UI.adulto.grupoDeEdad}
                 </summary>
                 <SelectorDeEdad ageMode={ageMode} alCambiarEdad={alCambiarEdad} />
-                <SelectorDeEpisodio
-                  episodioId={episodioId}
-                  alCambiarEpisodio={alCambiarEpisodio}
-                />
               </details>
             </>
           )}
@@ -226,9 +233,9 @@ export function EpisodioEnCurso({
           <button
             type="button"
             className="objetivo-tactil boton boton--secundario"
-            onClick={runtime.reiniciar}
+            onClick={alSalirAlMundo}
           >
-            {opcionDeParar ? runtime.texto(opcionDeParar.locId) : TEXTOS_UI.dialogo.volverAlInicio}
+            {opcionDeVolver ? runtime.texto(opcionDeVolver.locId) : TEXTOS_UI.mundo.volverAlMapa}
           </button>
         </footer>
       ) : null}

@@ -327,7 +327,15 @@
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background-color: var(--color-cielo);
+  /* Cielo arriba, mar abajo, con el horizonte donde la cámara lo ve: el
+     lienzo es transparente, así que esto es lo que se ve entre las islas. */
+  background: linear-gradient(
+    to bottom,
+    var(--color-cielo) 0%,
+    var(--color-cielo) 46%,
+    var(--color-mar) 54%,
+    var(--color-mar) 100%
+  );
 }
 
 /* Los paneles se posicionan explícitamente para quedar por encima del mundo.
@@ -340,6 +348,101 @@
 .aviso-desarrollo {
   position: relative;
   z-index: 1;
+}
+
+/* --- Mundo abierto ------------------------------------------------------- */
+
+/* La exploración es casi toda mundo. Lo único que se dibuja encima es la
+   oferta de empezar un episodio —y solo cuando hay una— y la ruta 2D, que va
+   plegada abajo. Una pantalla vacía no es una pantalla sin terminar: es lo
+   que hace que explorar se sienta explorar. */
+.mundo {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+/* El mundo ocupa la ventana entera y no comparte sitio con un panel de
+   diálogo, así que no necesita dejarle hueco abajo como hace `.escena`. */
+.escena--mundo {
+  position: fixed;
+  inset: 0;
+}
+
+/* Conversar ocupa el centro abajo, donde va el diálogo del episodio: es el
+   mismo gesto de lectura y no conviene que cambie de sitio según con quién
+   se hable. */
+.mundo__conversacion {
+  position: relative;
+  z-index: 1;
+  inline-size: min(46rem, 100%);
+  padding: var(--espacio-2);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.conversacion__controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  margin-block-start: var(--espacio-2);
+}
+
+.mundo__oferta,
+.mundo__conversacion {
+  position: relative;
+  z-index: 1;
+}
+
+.mundo__pie {
+  position: fixed;
+  /* Debajo del distintivo de borrador, que manda y no puede taparse (AC-10). */
+  inset-block-start: 3.25rem;
+  inset-inline-start: var(--espacio-2);
+  z-index: 2;
+}
+
+.mundo__oferta {
+  display: flex;
+  justify-content: center;
+}
+
+/* Arriba a la izquierda, bajo el distintivo, y no en el centro de abajo.
+   Estaba en medio de la pantalla y tapaba justo lo que hay que mirar: el
+   mundo. Sigue estando siempre —es la ruta 2D que exige AC-8, y quien no
+   pueda caminar tiene que poder llegar a una isla igual— pero pequeña y
+   apartada. */
+.mundo__destinos {
+  padding: var(--espacio-1) var(--espacio-2);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.mundo__resumen {
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+/* La lista abierta se despliega en columna y acotada: abierta en horizontal
+   volvía a cruzar la pantalla de lado a lado. */
+.mundo__destinos[open] .mundo__lista {
+  flex-direction: column;
+  max-inline-size: 14rem;
+}
+
+.mundo__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  margin-block-start: var(--espacio-1);
+  padding: 0;
+  list-style: none;
 }
 
 /* --- Diálogo ------------------------------------------------------------- */

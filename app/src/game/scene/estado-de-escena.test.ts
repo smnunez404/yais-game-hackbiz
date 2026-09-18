@@ -96,15 +96,32 @@ describe("estadoDeEscenaDesde", () => {
     }
   });
 
-  it("deja la escena en reposo cuando habla alguien que no tiene modelo", () => {
+  it("ahora que Luna tiene modelo, actúa ella misma en su escena", () => {
+    // Este test decía lo contrario: comprobaba que Luna NO aparecía, porque
+    // su GLB no cabía en el presupuesto de assets. Al optimizar los modelos
+    // entraron los cinco personajes, así que la escena de Luna ya la
+    // protagoniza Luna. Se deja el caso escrito —y no borrado— porque lo que
+    // sigue importando es que la escena represente a quien habla.
     const runtime = montarEn("s05_luna");
 
     const escena = escenaDe(runtime);
 
-    // Habla Luna: en 3D no aparece nadie actuando, y el diálogo sigue en 2D.
-    expect(escena.personajes).toEqual(["capi"]);
-    expect(escena.protagonista).toBeNull();
-    expect(escena.gesto).toEqual({ tipo: "reposo" });
+    expect(escena.personajes).toContain("luna");
+    expect(escena.protagonista).toBe("luna");
+    expect(escena.gesto.tipo).toBe("intencion");
+  });
+
+  it("quien no tiene modelo nunca sube al escenario", () => {
+    // La regla de fondo, que no depende de cuántos modelos haya hoy: la
+    // escena solo monta a quien `PRELOADED_CHARACTER_IDS` declara. Si mañana
+    // un personaje se cae del presupuesto, el episodio sigue jugándose con su
+    // retrato 2D y el diálogo (AC-8), no con un hueco.
+    for (const scene of episodio.scenes) {
+      const escena = escenaDe(montarEn(scene.id));
+      for (const personaje of escena.personajes) {
+        expect(PRELOADED_CHARACTER_IDS).toContain(personaje);
+      }
+    }
   });
 
   it("deja la escena en reposo mientras se juega un minijuego y en el cierre", () => {

@@ -37,10 +37,19 @@ interface CharacterProps {
   /** Escena actual: al cambiar, el personaje entra caminando de nuevo. */
   readonly sceneId: string;
   readonly gesto: GestoDeEscena;
+  /**
+   * Desde dónde aparece al empezar. Por defecto el extremo del sendero, que
+   * es de dónde entran los personajes de una escena del guion. Quien ya vive
+   * en su isla pasa aquí su propio sitio: si no, entraría caminando desde el
+   * otro extremo del archipiélago cada vez que se monta.
+   */
+  readonly entrada?: Posicion | undefined;
   readonly sessionVars: Readonly<Record<string, string | boolean>>;
   readonly menosMovimiento: boolean;
   /** Solo el personaje que controla quien juega lo recibe. */
   readonly comandoDelJugador?: RefObject<ComandoDeJugador | null> | undefined;
+  /** Solo lo recibe el personaje que controla quien juega. */
+  readonly tomarSaltoPedido?: (() => boolean) | undefined;
   /**
    * Ref que la cámara usa para seguirlo. Se comparte en vez de exponer la
    * posición por estado: seguir a alguien es cosa de cada cuadro y hacerlo
@@ -77,9 +86,11 @@ export function Character({
   destino,
   sceneId,
   gesto,
+  entrada = ENTRADA,
   sessionVars,
   menosMovimiento,
   comandoDelJugador,
+  tomarSaltoPedido,
   grupoCompartido,
   alCambiarActividad,
 }: CharacterProps) {
@@ -124,10 +135,11 @@ export function Character({
   useCharacterWalk({
     grupo,
     destino,
-    entrada: ENTRADA,
+    entrada,
     sceneId,
     menosMovimiento,
     comandoDelJugador,
+    tomarSaltoPedido,
     alCambiarMovimiento: alCambiarCaminata,
   });
 

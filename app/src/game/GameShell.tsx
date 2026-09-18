@@ -17,12 +17,13 @@
 // volver a empezar. No se guarda en ningún sitio, ni aquí ni en el
 // dispositivo.
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import type { AgeMode } from "../engine";
 import { EPISODIOS } from "../shared/episodios";
 import { AvisoDeDesarrollo } from "./dialogue/AvisoDeDesarrollo";
 import { EpisodioEnCurso } from "./dialogue/EpisodioEnCurso";
+import { EscenaLibre } from "./scene/EscenaLibre";
 import { DistintivoBorrador } from "./ui/DistintivoBorrador";
 import { TEXTOS_UI } from "./ui/textos-ui";
 
@@ -33,7 +34,16 @@ const MODOS_DE_EDAD: readonly { readonly id: AgeMode; readonly etiqueta: string 
 
 export default function GameShell() {
   const [ageMode, setAgeMode] = useState<AgeMode>("6-8");
-  const [episodioId, setEpisodioId] = useState(EPISODIOS[0]?.id ?? "");
+  /**
+   * `null` significa que no hay episodio y se está explorando. Se entra por
+   * ahí: el mundo es el sitio del que se sale hacia los episodios y al que se
+   * vuelve, no una pantalla de menú.
+   */
+  const [episodioId, setEpisodioId] = useState<string | null>(null);
+
+  const volverAlMundo = useCallback(() => setEpisodioId(null), []);
+
+  if (episodioId === null) return <Mundo alEmpezarEpisodio={setEpisodioId} ageMode={ageMode} />;
 
   const elegido = EPISODIOS.find((candidato) => candidato.id === episodioId) ?? EPISODIOS[0];
 
@@ -76,9 +86,36 @@ export default function GameShell() {
         episodio={episodio}
         ageMode={ageMode}
         alCambiarEdad={setAgeMode}
-        episodioId={elegido.id}
-        alCambiarEpisodio={setEpisodioId}
+        alSalirAlMundo={volverAlMundo}
       />
+    </main>
+  );
+}
+
+/**
+ * El mundo abierto, con el mismo distintivo de borrador que todo lo demás: no
+ * se apaga por estar fuera de un episodio (AC-10).
+ */
+function Mundo({
+  alEmpezarEpisodio,
+  ageMode,
+}: {
+  readonly alEmpezarEpisodio: (id: string) => void;
+  readonly ageMode: AgeMode;
+}) {
+  return (
+    <main className="shell shell--juego">
+      {/* El `h1` no se dibuja —en pantalla sería un rótulo permanente que no
+          cambia nunca, ocupando sitio del mundo— pero existe: hace falta para
+          la estructura de encabezados y para quien navega con lector de
+          pantalla. */}
+      <header className="shell__encabezado shell__encabezado--flotante">
+        <DistintivoBorrador />
+        <h1 className="shell__titulo shell__titulo--juego visualmente-oculto">
+          {TEXTOS_UI.mundo.region}
+        </h1>
+      </header>
+      <EscenaLibre alEmpezarEpisodio={alEmpezarEpisodio} ageMode={ageMode} />
     </main>
   );
 }
@@ -107,44 +144,5 @@ export function SelectorDeEdad({
         </label>
       ))}
     </fieldset>
-  );
-}
-
-/**
- * Control de quien acompaña: qué episodio se juega. Los títulos salen del
- * contenido de cada episodio, no de la interfaz.
- */
-export function SelectorDeEpisodio({
-  episodioId,
-  alCambiarEpisodio,
-}: {
-  readonly episodioId: string;
-  readonly alCambiarEpisodio: (id: string) => void;
-}) {
-  const disponibles = EPISODIOS.filter((candidato) => candidato.resultado.ok);
-  if (disponibles.length < 2) return null;
-
-  return (
-    <div className="barra-adulto__campo">
-      <label htmlFor="selector-de-episodio">{TEXTOS_UI.adulto.episodio}</label>
-      <select
-        id="selector-de-episodio"
-        value={episodioId}
-        onChange={(evento) => alCambiarEpisodio(evento.target.value)}
-      >
-        {disponibles.map((candidato) => {
-          if (!candidato.resultado.ok) return null;
-          const contenido = candidato.resultado.episode;
-          const titulo =
-            contenido.localization[contenido.defaultLocale]?.[contenido.titleLocId] ??
-            contenido.slug;
-          return (
-            <option key={candidato.id} value={candidato.id}>
-              {titulo}
-            </option>
-          );
-        })}
-      </select>
-    </div>
   );
 }

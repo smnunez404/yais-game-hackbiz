@@ -41,6 +41,10 @@
      del cielo vive con el resto de los tokens y no incrustado en el código
      de la escena. */
   --color-cielo: #d3e7f2;
+  /* El mar. Hasta ahora el agua se pintaba con el mismo color que el cielo y
+     no había línea de horizonte: once islas flotando en la nada. Más saturado
+     y más oscuro que el cielo, y con contraste de sobra contra el césped. */
+  --color-mar: #7fb4cf;
 
   /* Pasteles decorativos del disco que hay detrás del icono de cada tarjeta
      de decisión (lámina `isla-acuerdos-core-screens.png`: cada opción lleva

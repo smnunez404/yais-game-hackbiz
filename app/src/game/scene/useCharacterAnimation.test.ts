@@ -95,7 +95,8 @@ function montar(clip: RuntimeClip, menosMovimiento = false) {
   const idle = crearAccion("Idle");
   const wave = crearAccion("Wave");
   const listen = crearAccion("Listen");
-  const acciones = { Idle: idle, Wave: wave, Listen: listen };
+  const walk = crearAccion("Walk");
+  const acciones = { Idle: idle, Wave: wave, Listen: listen, Walk: walk };
   const { mixer, detuvoTodo, terminar } = crearMixer();
   const alCambiarActividad = vi.fn();
 
@@ -111,7 +112,7 @@ function montar(clip: RuntimeClip, menosMovimiento = false) {
     { initialProps: { clip, menosMovimiento } },
   );
 
-  return { idle, wave, listen, alCambiarActividad, detuvoTodo, terminar, vista };
+  return { idle, wave, listen, walk, alCambiarActividad, detuvoTodo, terminar, vista };
 }
 
 describe("useCharacterAnimation", () => {
@@ -200,6 +201,32 @@ describe("useCharacterAnimation", () => {
     expect(detuvoTodo()).toBe(true);
     expect(idle.paused).toBe(true);
     expect(wave.llamadas).not.toContain("play");
+    expect(alCambiarActividad).toHaveBeenCalledWith(false);
+  });
+
+  it("con menos movimiento SÍ anima la locomoción que pide quien juega", () => {
+    // Confirma el reporte de campo: "el capibara no tiene activado su efecto
+    // de caminar". `useCharacterWalk` ya solo pide este clip cuando hay una
+    // orden real de quien juega (nunca para un NPC ni para la entrada de
+    // escena), así que congelarlo aquí producía un personaje deslizándose
+    // sin mover las patas.
+    const { walk, idle, alCambiarActividad, detuvoTodo } = montar("Walk", true);
+
+    expect(detuvoTodo()).toBe(false);
+    expect(idle.paused).toBe(false);
+    expect(walk.llamadas).toContain("play");
+    expect(walk.loop).toBe(LoopRepeat);
+    expect(walk.repeticiones).toBe(Infinity);
+    expect(alCambiarActividad).toHaveBeenCalledWith(true);
+  });
+
+  it("con menos movimiento el resto de clips sigue congelado, incluida Listen", () => {
+    // Solo la locomoción real es la excepción (AC-7): un bucle de escucha
+    // ambiental no es una acción que alguien haya pedido con el cuerpo.
+    const { listen, alCambiarActividad, detuvoTodo } = montar("Listen", true);
+
+    expect(detuvoTodo()).toBe(true);
+    expect(listen.llamadas).not.toContain("play");
     expect(alCambiarActividad).toHaveBeenCalledWith(false);
   });
 

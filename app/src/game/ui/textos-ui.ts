@@ -45,6 +45,28 @@ export const TEXTOS_UI = {
     puente: "Arma el puente",
   },
 
+  /**
+   * Rótulos del mundo abierto. Son de interfaz, no narrativa: nombran lo que
+   * se puede hacer, no lo que alguien dice. El título de cada isla es el del
+   * episodio que se juega en ella, y ese sale de `content/`.
+   */
+  mundo: {
+    region: "La isla de los acuerdos",
+    /** Se muestra pegado al título del episodio: «Empezar aquí: …». */
+    empezarAqui: "Empezar aquí:",
+    irAUnaIsla: "Ir a una isla",
+    /** Se muestra pegado al nombre: «Hablar con Tomi». */
+    hablarCon: "Hablar con",
+    conversacion: "Conversación",
+    seguirExplorando: "Seguir explorando",
+    /**
+     * Solo se usa si el contenido no declarara su opción de pausa. El texto
+     * bueno es el del guion —«Volver al mapa»—, que sí está escrito para un
+     * niño; esto es la red de seguridad.
+     */
+    volverAlMapa: "Volver al mapa",
+  },
+
   /** Controles de quien acompaña durante el juego. */
   adulto: {
     /* Rótulo propio y corto: usar aquí el mismo «Para la persona que
@@ -59,7 +81,11 @@ export const TEXTOS_UI = {
     preguntas: "Preguntas para conversar",
     actividad: "Actividad",
     enFamilia: "En casa",
-    volverAJugar: "Volver a jugar",
+    /* Decía «Volver a jugar» y ya no vuelve a jugar: sale al mundo. Para un
+       niño de 6-8, que lee literal, el rótulo prometía una cosa y hacía otra
+       (revisión de content-guardian). Ahora dice lo que hace, con el mismo
+       nombre que usa el guion en la pausa. */
+    volverAlMapa: "Volver al mapa",
   },
 
   desarrollo: {

@@ -54,12 +54,19 @@ const SALUDO = {
 };
 
 /**
- * Abre el juego —se entra directo, sin pantalla de inicio— y salta a una
- * escena con el selector de desarrollo.
+ * Abre el juego —se entra directo al mundo, sin pantalla de inicio—, entra al
+ * episodio por su isla y salta a una escena con el selector de desarrollo.
+ *
+ * La isla se elige por la ruta 2D del mundo, no caminando: en jsdom no hay
+ * WebGL, así que esto es exactamente el fallback de AC-8. Que estos tests
+ * pasen por ahí es la prueba de que explorar no es el único camino.
  */
 async function empezarEn(escena: string, modo?: "6-8" | "9-12") {
   const usuario = userEvent.setup();
   render(<GameShell />);
+
+  await usuario.click(screen.getByText(TEXTOS_UI.mundo.irAUnaIsla));
+  await usuario.click(screen.getByRole("button", { name: texto(episodio.titleLocId) }));
 
   if (modo) {
     await usuario.click(
@@ -109,17 +116,29 @@ beforeEach(() => {
 });
 
 describe("GameShell — arranque", () => {
-  it("entra directo al episodio, sin pantalla de inicio", () => {
+  it("entra directo al mundo, sin pantalla de inicio ni menú", () => {
     render(<GameShell />);
 
-    // La primera línea del guion está en pantalla desde el primer momento.
-    expect(screen.getByRole("button", { name: TEXTOS_UI.dialogo.continuar })).toBeVisible();
+    // Lo primero es el sitio, no un menú: el mundo, su distintivo y la ruta
+    // 2D para llegar a una isla sin caminar (AC-8).
     expect(screen.getByText(TEXTOS_UI.distintivoBorrador)).toBeVisible();
+    expect(screen.getByText(TEXTOS_UI.mundo.irAUnaIsla)).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(TEXTOS_UI.mundo.region);
+  });
+
+  it("desde el mundo se entra al episodio de su isla", async () => {
+    const usuario = userEvent.setup();
+    render(<GameShell />);
+
+    await usuario.click(screen.getByText(TEXTOS_UI.mundo.irAUnaIsla));
+    await usuario.click(screen.getByRole("button", { name: texto(episodio.titleLocId) }));
+
+    expect(screen.getByRole("button", { name: TEXTOS_UI.dialogo.continuar })).toBeVisible();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(texto(episodio.titleLocId));
   });
 
-  it("deja a quien acompaña elegir el grupo de edad durante el juego", () => {
-    render(<GameShell />);
+  it("deja a quien acompaña elegir el grupo de edad durante el juego", async () => {
+    await empezarEn(SALUDO.escena);
 
     expect(screen.getByRole("radio", { name: TEXTOS_UI.inicio.edad68 })).toBeChecked();
     expect(screen.getByRole("radio", { name: TEXTOS_UI.inicio.edad912 })).not.toBeChecked();
@@ -281,10 +300,11 @@ describe("GameShell — cierre del episodio", () => {
     const usuario = await empezarEn("s07_reconstruccion");
     await jugarHastaElegirOTerminar(usuario);
 
-    await usuario.click(screen.getByRole("button", { name: TEXTOS_UI.cierre.volverAJugar }));
+    await usuario.click(screen.getByRole("button", { name: TEXTOS_UI.cierre.volverAlMapa }));
 
-    // Vuelve al principio del episodio, no a una pantalla de resultado.
-    expect(screen.getByRole("button", { name: TEXTOS_UI.dialogo.continuar })).toBeVisible();
+    // Devuelve al mundo, no a una pantalla de resultado: desde ahí se puede
+    // volver a entrar a la misma isla o irse a otra parte.
+    expect(screen.getByText(TEXTOS_UI.mundo.irAUnaIsla)).toBeVisible();
   });
 });
 

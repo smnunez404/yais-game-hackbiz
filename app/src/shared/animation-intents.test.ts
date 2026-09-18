@@ -168,6 +168,36 @@ describe("mapa de intenciones de animación", () => {
     expect(advertencia).toHaveBeenCalledTimes(1);
   });
 
+  it("los cinco clips reales de un personaje son alcanzables desde alguna intención del contenido", () => {
+    // Auditoría pedida tras el reporte de "el capibara no camina": los cinco
+    // clips grabados deben poder sonar de verdad, no solo existir en el GLB.
+    // `Listen` no aparece como intención de guion: lo asigna
+    // `estado-de-escena.ts` cuando alguien preguntó y el niño está por
+    // decidir (gesto `{ tipo: "escuchar" }`), así que se comprueba aparte con
+    // el mismo `resolveAnimationClip` que usa `Character.tsx` para ese caso.
+    const usadas = intencionesUsadasEnElContenido();
+    const clipsAlcanzados = new Set<RuntimeClip>(["Listen"]);
+
+    for (const intencion of usadas) {
+      if (esSaludoDeSesion(intencion)) {
+        for (const valor of ["wave", "distance", "high_five", "fist_bump", "hug", "none"]) {
+          clipsAlcanzados.add(
+            resolveAnimationClip(intencion, "capi", { [intencion.split(":")[1] ?? ""]: valor }),
+          );
+        }
+        continue;
+      }
+      clipsAlcanzados.add(resolveAnimationClip(intencion, "capi"));
+      clipsAlcanzados.add(resolveAnimationClip(intencion, "luna"));
+    }
+
+    for (const clip of ["Idle", "Wave", "Listen", "TalkGesture", "Walk", "Roll"] as const) {
+      expect(clipsAlcanzados.has(clip), `ningún nodo del contenido llega a pedir "${clip}"`).toBe(
+        true,
+      );
+    }
+  });
+
   it("no emite ninguna advertencia en producción, aunque la intención sea desconocida o el clip falte", () => {
     const advertencia = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const devOriginal = import.meta.env.DEV;

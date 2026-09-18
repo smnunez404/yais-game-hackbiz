@@ -35,7 +35,7 @@ export function PantallaDeCierre({
   return (
     <section className="cierre" aria-labelledby="cierre-titulo">
       <h2 className="cierre__titulo" id="cierre-titulo">
-        {debrief ? texto(debrief.titleLocId) : TEXTOS_UI.cierre.volverAJugar}
+        {debrief ? texto(debrief.titleLocId) : TEXTOS_UI.cierre.volverAlMapa}
       </h2>
 
       {debrief ? <p className="cierre__mensaje">{texto(debrief.childLocId)}</p> : null}
@@ -80,7 +80,7 @@ export function PantallaDeCierre({
           data-principal="true"
           onClick={alVolverAJugar}
         >
-          {TEXTOS_UI.cierre.volverAJugar}
+          {TEXTOS_UI.cierre.volverAlMapa}
         </button>
       </div>
     </section>
