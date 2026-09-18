@@ -247,6 +247,23 @@ function advertirEnDesarrollo(mensaje: string): void {
   }
 }
 
+/**
+ * Clips que representan un gesto puntual: empiezan, terminan y devuelven al
+ * personaje a `Idle`. Los demás (`Idle`, `Listen` y la locomoción) son
+ * estados sostenidos que se mantienen mientras dure la situación.
+ *
+ * Los cinco clips grabados están marcados `loop: true` en los `asset.json`
+ * de `assets/production/animated/v001`, así que esta distinción no
+ * la trae el archivo: es una decisión de reproducción, y por eso vive aquí,
+ * declarada y con nombre, en vez de deducirse en la escena (T-001-06).
+ */
+export const CLIPS_DE_GESTO_PUNTUAL: readonly RuntimeClip[] = ["Wave", "TalkGesture"];
+
+/** `true` si el clip debe reproducirse una vez y volver a `Idle`. */
+export function esGestoPuntual(clip: RuntimeClip): boolean {
+  return CLIPS_DE_GESTO_PUNTUAL.includes(clip);
+}
+
 /** Resuelve un clip lógico al `RuntimeClip` real de un personaje, con fallback a `Idle`. */
 function resolverClipParaPersonaje(
   clipLogico: LogicalClip,

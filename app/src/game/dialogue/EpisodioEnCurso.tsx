@@ -23,6 +23,7 @@ import {
   type RuntimeDiagnostic,
 } from "../../engine";
 import { crearAlmacenamientoDelNavegador } from "../../shared/browser-storage";
+import { EscenaDelEpisodio } from "../scene/EscenaDelEpisodio";
 import { TEXTOS_UI } from "../ui/textos-ui";
 import { AvisoDeDesarrollo } from "./AvisoDeDesarrollo";
 import { Decisiones } from "./Decisiones";
@@ -89,6 +90,10 @@ export function EpisodioEnCurso({ episodio, ageMode, alVolverAlInicio }: Episodi
 
   return (
     <section className="episodio" aria-label={TEXTOS_UI.dialogo.regionEpisodio}>
+      {/* Mejora progresiva: si no hay WebGL o el 3D falla, esto no renderiza
+          nada y el episodio se juega igual en 2D (AC-8). */}
+      <EscenaDelEpisodio vista={vista} estado={estado} />
+
       <div className="episodio__contenido" ref={regionRef}>
         {vista.kind === "line" ? (
           <LineaDeDialogo

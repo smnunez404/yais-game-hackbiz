@@ -15,11 +15,8 @@ verificado, ni se llama producto a un prototipo.
 | T-001-03 — Valida el episodio completo | hecho | `npm run verify` verde |
 | T-001-04 — Motor puro y persistencia mínima | hecho | `npm run verify` verde |
 | T-001-05 — Experiencia 2D accesible | hecho | `npm run verify` verde |
-| T-001-06 — Escena 3D con Capi y Tomi | parcial | — |
+| T-001-06 — Escena 3D con Capi y Tomi | hecho | `npm run verify` verde |
 | T-001-07 — Verificación de extremo a extremo | pendiente | — |
-
-«Parcial» es literal: de T-001-06 existe solo el mapa de intenciones de
-animación. No hay escena 3D todavía.
 
 ## T-001-01 — Scaffold y compuerta de calidad
 
@@ -229,6 +226,77 @@ Pendiente, medido pero no resuelto:
 - La medida real de 44×44, el contraste en proyector y el comportamiento con
   lector de pantalla se revisan en T-001-07; los tests solo comprueban que
   ningún control se saltó la clase que aplica el objetivo táctil.
+
+## T-001-06 — Escena 3D con Capi y Tomi
+
+Hecho. `npm run verify` verde; 101 tests en 11 archivos. Capi y Tomi aparecen
+desde sus GLB reales sobre la isla, encima del mismo diálogo 2D, que sigue
+siendo la ruta accesible y la que manda.
+
+**Cómo está armado**
+
+- `scene/EscenaDelEpisodio.tsx` no importa Three. Comprueba WebGL y solo
+  entonces carga `GameCanvas` con `import()`. Un equipo sin aceleración no
+  descarga el motor 3D: el chunk `GameCanvas` pesa 973 kB (259 kB gzip) y el
+  principal se queda en 353 kB (106 kB gzip), prácticamente lo mismo que antes
+  de esta tarea.
+- Un límite de error retira la escena si falla en marcha (contexto perdido, GLB
+  roto) y la sesión continúa en 2D. Se comprobó sin querer: mientras el
+  servidor de desarrollo tenía las dependencias sin optimizar, el `import()`
+  falló, el límite hizo su trabajo y el episodio siguió jugándose.
+- `scene/estado-de-escena.ts` es puro y traduce la vista del motor a quién está
+  en escena y qué hace. Ahí vive la regla del hito: solo suben al escenario los
+  personajes con GLB sincronizado (Capi y Tomi). Cuando habla Luna, Beto o
+  Clara, el 3D se queda en reposo y quien identifica al personaje es el retrato
+  2D del diálogo.
+- `scene/useCharacterAnimation.ts` conduce el mixer a mano, como pide PLAN-001.
+  Un gesto (`Wave`, `TalkGesture`) suena una vez y vuelve a `Idle` por el evento
+  `finished`, no por un temporizador. Un estado sostenido (`Listen` mientras el
+  niño decide) se mantiene en bucle.
+- El bucle de render se apaga (`frameloop="demand"`) cuando la escena queda
+  quieta, con un margen de 350 ms para que la mezcla de vuelta a `Idle`
+  termine. Sin ese margen el personaje se congelaba a medio camino entre el
+  gesto y el reposo; se detectó midiendo llamadas de dibujo en el navegador, no
+  leyendo el código.
+- Con `prefers-reduced-motion` no se reproduce ninguna animación: el personaje
+  se queda en el primer cuadro de `Idle` y el bucle no se enciende (AC-7).
+- El retrato 2D se mantiene aunque el 3D funcione: es lo que dice quién habla, y
+  es el único indicio cuando quien habla no tiene modelo.
+
+**Comprobado en el navegador**
+
+- Capi y Tomi se ven juntos en `s04_tomi`, cada uno desde su GLB.
+- Recorriendo las siete escenas solo se descargan tres GLB: `island_large`,
+  `mascot` (Capi) y `child_explorer` (Tomi). Luna, Clara y Beto no se descargan
+  nunca, que es el criterio explícito de la tarea.
+- Con la escena quieta, cero llamadas de dibujo en 1,5 s.
+
+**Dependencias**
+
+`three@0.186.0`, `@react-three/fiber@9.7.0`, `@react-three/drei@10.7.8` y
+`@types/three`. React baja de 19.3.0 a 19.2.8 porque `@react-three/fiber@9.7.0`
+declara `react: ">=19 <19.3"`: no es un descuido, es la restricción de la
+librería. Si más adelante se quiere React 19.3, hay que esperar a que R3F lo
+soporte.
+
+**Lo que no está medido y no se promete**
+
+- Ni un solo cuadro por segundo. La ventana del navegador de pruebas estaba en
+  segundo plano y el navegador limita el bucle de animación en ese estado, así
+  que cualquier medida de fluidez de esta sesión sería falsa. Se mide en
+  T-001-07, con la ventana al frente y en la laptop real.
+- El GLB de Capi pesa 16,4 MB y tiene 226 374 triángulos; el de Tomi, 2 MB. Es
+  lo que hay hoy en `assets/production/animated/v001` y no se toca desde aquí
+  (AGENTS.md). Con la conexión de una escuela eso es mucho: el episodio se puede
+  jugar mientras baja —la escena entra cuando llega—, pero conviene medirlo
+  antes de la demo.
+- Las 61 intenciones del guion siguen cayendo en cinco clips. La escena usa el
+  mapa de `shared/animation-intents.ts` y avisa en desarrollo cuando una
+  intención cae en un `fallback`; varias escenas se ven aproximadas y eso no se
+  disimula (`docs/MAPA-ANIMACIONES.md`).
+- La vuelta a `Idle` deja al personaje congelado cuando la escena está quieta.
+  Es deliberado, por el presupuesto de CPU de una laptop vieja, y está en un
+  solo lugar por si en el aula se lee como que el juego se colgó.
 
 ## Pendientes y riesgos abiertos
 
