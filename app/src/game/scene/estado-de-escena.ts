@@ -39,12 +39,29 @@ export interface EstadoDeEscena {
   /** Quién habla o escucha ahora, si tiene GLB. */
   readonly protagonista: CharacterId | null;
   readonly gesto: GestoDeEscena;
-  /** Necesarias para resolver `greet_from_session:*`. */
+  /**
+   * Solo las variables de saludo (`greetCapi`, `greetTomi`, `greetBeto`), que
+   * son las que `greet_from_session:*` necesita. El resto de la sesión no
+   * llega aquí: `insistedLuna` registra que alguien pasó por encima de un
+   * «no», y ningún gesto puede depender de eso ni ahora ni por descuido más
+   * adelante (Constitución III; guardarraíl de docs/ESTADO-IMPLEMENTACION.md).
+   */
   readonly sessionVars: Readonly<Record<string, string | boolean>>;
 }
 
 function tieneModeloSincronizado(castId: string): castId is CharacterId {
   return (PRELOADED_CHARACTER_IDS as readonly string[]).includes(castId);
+}
+
+/** Prefijo de las únicas variables de sesión que la escena puede ver. */
+const PREFIJO_DE_SALUDO = "greet";
+
+function soloSaludos(
+  sessionVars: Readonly<Record<string, string | boolean>>,
+): Readonly<Record<string, string | boolean>> {
+  return Object.fromEntries(
+    Object.entries(sessionVars).filter(([clave]) => clave.startsWith(PREFIJO_DE_SALUDO)),
+  );
 }
 
 /** Personajes del reparto de la escena que sí se pueden mostrar en 3D. */
@@ -64,7 +81,7 @@ export function estadoDeEscenaDesde(vista: RuntimeView, estado: RuntimeState): E
   const base = {
     sceneId: vista.scene.id,
     personajes: personajesDe(vista),
-    sessionVars: estado.sessionVars,
+    sessionVars: soloSaludos(estado.sessionVars),
   } as const;
 
   if (vista.kind === "line") {

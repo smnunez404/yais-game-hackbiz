@@ -51,30 +51,58 @@
   color: var(--color-acento);
 }
 
-/* Las opciones de decisión ocupan toda la fila y alinean icono y texto a la
-   izquierda: se leen como una lista, no como una botonera de colores.
+/* Las opciones de decisión son tarjetas con el icono grande arriba y el texto
+   debajo, como en la lámina `isla-acuerdos-core-screens.png`, no filas de una
+   lista. El icono es SVG dibujado en código: las láminas son brief de arte y
+   no se recortan (assets/concepts/ASSET-INVENTORY.md).
 
    El borde se queda en --color-acento también en reposo. La primera versión
-   usaba --color-borde y la revisión de a11y-perf-reviewer lo midió: botón
-   blanco sobre panel blanco separados por un borde de 1.50:1, por debajo del
+   usaba --color-borde y la revisión de a11y-perf-reviewer lo midió: tarjeta
+   blanca sobre panel blanco separadas por un borde de 1.50:1, por debajo del
    mínimo de 3:1 que WCAG 1.4.11 pide para el límite de un control. Un niño de
-   seis años tiene que reconocer esa fila como algo que se pulsa sin que un
-   adulto se lo diga.
+   seis años tiene que reconocer eso como algo que se pulsa sin que un adulto
+   se lo diga.
      --color-texto  sobre --color-superficie (texto):     16.20:1
      --color-acento sobre --color-superficie (borde):      7.80:1
-   El estado de hover ya no cambia el borde —no quedaría margen de cambio—,
-   sino el fondo, que mantiene 14.50:1 con el texto. */
+   El hover cambia el fondo y no el borde, y mantiene 14.50:1 con el texto. */
 .boton--opcion {
+  flex-direction: column;
+  gap: var(--espacio-1);
   inline-size: 100%;
-  justify-content: flex-start;
+  block-size: 100%;
+  padding: var(--espacio-2) var(--espacio-1);
   background-color: var(--color-superficie);
   border-color: var(--color-acento);
   color: var(--color-texto);
-  text-align: start;
+  text-align: center;
 }
 
 .boton--opcion:hover {
   background-color: var(--color-fondo);
+}
+
+/* Disco de color detrás del icono. Decorativo: el icono lo hereda por
+   `currentColor` y el color no aporta significado (ver tokens.css). */
+.boton--opcion .opcion__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: 50%;
+  background-color: var(--color-tarjeta-sol);
+}
+
+.decisiones__lista > li:nth-child(4n + 2) .opcion__icono {
+  background-color: var(--color-tarjeta-coral);
+}
+
+.decisiones__lista > li:nth-child(4n + 3) .opcion__icono {
+  background-color: var(--color-tarjeta-turquesa);
+}
+
+.decisiones__lista > li:nth-child(4n + 4) .opcion__icono {
+  background-color: var(--color-tarjeta-hoja);
 }
 
 /* --- Pantalla de inicio ------------------------------------------------- */
@@ -153,16 +181,32 @@
 /* --- Escena 3D ----------------------------------------------------------- */
 
 /* Decorado: el lienzo va `aria-hidden` y nunca recibe foco. Si no hay WebGL
-   este bloque no existe y el diálogo ocupa su lugar sin dejar hueco (AC-8).
-   La altura es fija en proporción a la ventana para que el diálogo, que es lo
-   que hay que leer, nunca quede empujado fuera de la pantalla en una laptop
-   de 768 px de alto. */
+   —o si la escena falla y el límite de error la retira— este bloque no existe
+   y todo lo de abajo recupera su sitio sin dejar hueco (AC-8). Por eso el
+   solapamiento se escribe con el selector de hermano adyacente
+   `.escena + .episodio__contenido`: depende de que la escena esté de verdad
+   en la página, no de una clase que alguien pueda olvidar quitar.
+
+   La altura está acotada en `rem` además de en `vh` para que el diálogo, que
+   es lo que hay que leer, nunca quede empujado fuera de una pantalla de
+   laptop de 768 px de alto. */
 .escena {
-  block-size: clamp(10rem, 30vh, 18rem);
+  block-size: clamp(14rem, 46vh, 24rem);
   overflow: hidden;
-  background-color: var(--color-fondo);
+  background-color: var(--color-cielo);
   border: 1px solid var(--color-borde);
   border-radius: var(--radio);
+}
+
+/* El panel de diálogo se apoya sobre la escena, sin transparencias: sigue
+   siendo opaco, así que el texto conserva sus 16.20:1 de contraste medido.
+   Lo que se gana es que la isla ocupe la pantalla y el diálogo se lea encima,
+   como en el concepto de arte. */
+.escena + .episodio__contenido {
+  position: relative;
+  z-index: 1;
+  margin-block-start: calc(var(--espacio-4) * -1);
+  margin-inline: var(--espacio-2);
 }
 
 /* --- Diálogo ------------------------------------------------------------- */
@@ -244,9 +288,12 @@
   margin: 0 0 var(--espacio-2);
 }
 
+/* Retícula de tarjetas: tantas por fila como quepan sin bajar de 9rem, que
+   es el ancho al que una etiqueta de dos palabras todavía se lee proyectada.
+   En pantalla angosta cae sola a una columna, sin media query. */
 .decisiones__lista {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: var(--espacio-1);
   margin: 0;
   padding: 0;
@@ -361,9 +408,15 @@
     block-size: 5rem;
   }
 
-  /* En pantalla angosta el decorado cede sitio al texto. */
+  /* En pantalla angosta el decorado cede sitio al texto, y el diálogo deja
+     de solaparse: con tan poca altura, robarle 2 rem a la isla la borra. */
   .escena {
-    block-size: 9rem;
+    block-size: 11rem;
+  }
+
+  .escena + .episodio__contenido {
+    margin-block-start: var(--espacio-1);
+    margin-inline: 0;
   }
 
   .boton {

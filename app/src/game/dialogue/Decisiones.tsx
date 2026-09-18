@@ -8,10 +8,15 @@
 // infantil escrito en código, y lo bloqueó la revisión de content-guardian
 // (AGENTS.md; Constitución IV).
 //
-// Cada opción es un botón con icono y texto. Nunca solo icono y nunca solo
-// color: la forma del icono, el texto y el orden son tres señales distintas
-// (Constitución VII). El icono va `aria-hidden` porque el texto del botón ya
-// es su nombre accesible; repetirlo obligaría a escucharlo dos veces.
+// Cada opción es una tarjeta con el icono grande arriba y el texto debajo,
+// como la pantalla de saludo de `assets/concepts/isla-acuerdos-core-screens.png`.
+// El icono se dibuja como SVG en código: las láminas son brief de arte y no se
+// recortan ni se sirven como UI (assets/concepts/ASSET-INVENTORY.md).
+//
+// Nunca solo icono y nunca solo color: la forma del icono, el texto y el orden
+// son tres señales distintas (Constitución VII). El icono va `aria-hidden`
+// porque el texto de la tarjeta ya es su nombre accesible; repetirlo obligaría
+// a escucharlo dos veces. El disco de color detrás del icono es decoración.
 //
 // No hay opción correcta ni incorrecta: aquí no existe estado de acierto, ni
 // de error, ni marca de intento (Constitución V, AC-2 y AC-4). Elegir otra
@@ -75,7 +80,11 @@ export function Decisiones({ vista, alElegir }: DecisionesProps) {
                 data-principal={indice === 0 ? "true" : undefined}
                 onClick={() => alElegir(option.id)}
               >
-                {Icono ? <Icono /> : null}
+                {Icono ? (
+                  <span className="opcion__icono" aria-hidden="true">
+                    <Icono />
+                  </span>
+                ) : null}
                 <span>{text}</span>
               </button>
             </li>

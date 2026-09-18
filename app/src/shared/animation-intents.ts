@@ -264,6 +264,31 @@ export function esGestoPuntual(clip: RuntimeClip): boolean {
   return CLIPS_DE_GESTO_PUNTUAL.includes(clip);
 }
 
+/**
+ * `true` si la intención del guion implica desplazarse (`walk_with_player`,
+ * `run_open_arms`, `cross_bridge_celebrate`, `playful_one_step`,
+ * `smile_roll_forward`). La escena lo usa para mover al personaje de verdad
+ * y no solo reproducirle el clip de caminar en el sitio, que se vería como
+ * andar sobre una cinta.
+ */
+export function esIntencionDeLocomocion(intent: string): boolean {
+  return esIntentoFijo(intent) && ANIMATION_INTENT_MAP[intent].clip === "Locomotion";
+}
+
+/**
+ * Avisa, solo en desarrollo, de que esta intención no tiene un clip que la
+ * represente y se está usando un relleno honesto. Es el punto 3 de T-001-06
+ * ("advertir solo en desarrollo cuando haya fallback"): sin esto, las 40
+ * intenciones marcadas `fallback` se reproducirían en silencio y nadie que
+ * dirija arte sabría cuáles se ven aproximadas.
+ */
+function advertirSiEsRelleno(entrada: AnimationIntentEntry, intent: string): void {
+  if (entrada.fidelity !== "fallback") return;
+  advertirEnDesarrollo(
+    `la intención "${intent}" no tiene clip propio; se rellena con "${entrada.clip}". Ver docs/MAPA-ANIMACIONES.md.`,
+  );
+}
+
 /** Resuelve un clip lógico al `RuntimeClip` real de un personaje, con fallback a `Idle`. */
 function resolverClipParaPersonaje(
   clipLogico: LogicalClip,
@@ -309,6 +334,7 @@ export function resolveAnimationClip(
       );
       return "Idle";
     }
+    advertirSiEsRelleno(entrada, intent);
     return resolverClipParaPersonaje(entrada.clip, personaje, intent);
   }
 
@@ -318,5 +344,6 @@ export function resolveAnimationClip(
   }
 
   const entrada = ANIMATION_INTENT_MAP[intent];
+  advertirSiEsRelleno(entrada, intent);
   return resolverClipParaPersonaje(entrada.clip, personaje, intent);
 }

@@ -28,8 +28,16 @@
 
 /* Distintivo obligatorio mientras el contenido no esté aprobado (AC-10).
    Contraste --color-borrador-texto sobre --color-borrador-fondo:
-   10.77:1 (texto normal, min 4.5:1). */
+   10.77:1 (texto normal, min 4.5:1).
+
+   Va `sticky`: AC-10 dice "en pantalla", y con la escena 3D la página llega a
+   desplazarse en una laptop de 768 px de alto. Si el distintivo se fuera con
+   el scroll, habría tramos de demo sin él (revisión de content-guardian). */
 .distintivo-borrador {
+  position: sticky;
+  inset-block-start: var(--espacio-1);
+  z-index: 2;
+  align-self: flex-start;
   margin: 0;
   padding: var(--espacio-1) var(--espacio-2);
   background-color: var(--color-borrador-fondo);

@@ -11,10 +11,10 @@
 // que alguien pulse un botón (Constitución VI). Con `prefers-reduced-motion`
 // el bucle no se enciende nunca.
 //
-// La escena es decorado: no recibe foco, no tiene controles y va
-// `aria-hidden`. Todo lo que hay que leer, elegir o escuchar vive en la
-// interfaz 2D, que es la ruta accesible y la que sigue funcionando sola
-// (AC-8).
+// La escena es decorado: no recibe foco, no tiene controles y el envoltorio
+// que la contiene va `aria-hidden` (lo pone `EscenaDelEpisodio`). Todo lo que
+// hay que leer, elegir o escuchar vive en la interfaz 2D, que es la ruta
+// accesible y la que sigue funcionando sola (AC-8).
 
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useCallback, useMemo, useState } from "react";
@@ -23,20 +23,22 @@ import type { CharacterId } from "../../shared/assets";
 import { Character } from "./Character";
 import type { EstadoDeEscena } from "./estado-de-escena";
 import { IslandScene } from "./IslandScene";
+import { destinoDe } from "./posiciones";
 
 interface GameCanvasProps {
   readonly escena: EstadoDeEscena;
   readonly menosMovimiento: boolean;
 }
 
-/** Posiciones fijas del escenario. Sin movimiento de cámara (AC-7). */
-const POSICION_POR_PERSONAJE: Readonly<Record<CharacterId, readonly [number, number, number]>> = {
-  capi: [-0.7, 0, 0],
-  tomi: [0.7, 0, 0],
-  luna: [1.8, 0, 0],
-  clara: [-1.8, 0, 0],
-  beto: [2.6, 0, 0],
-};
+/** A dónde mira la cámara: al claro, no al horizonte. */
+const PUNTO_DE_MIRA: readonly [number, number, number] = [0, 0.7, 0.2];
+
+/**
+ * Cámara fija. Está lo bastante atrás para que quepan la isla entera (6,3 de
+ * ancho) y el faro (4,65 de alto) sin recortes, y lo bastante alta para que
+ * se vea el suelo del claro donde conversan los personajes.
+ */
+const POSICION_DE_CAMARA: readonly [number, number, number] = [0, 3.4, 8.6];
 
 export default function GameCanvas({ escena, menosMovimiento }: GameCanvasProps) {
   const [enMovimiento, setEnMovimiento] = useState<readonly CharacterId[]>([]);
@@ -53,43 +55,47 @@ export default function GameCanvas({ escena, menosMovimiento }: GameCanvasProps)
 
   const personajes = useMemo(
     () =>
-      escena.personajes.map((characterId) => ({
-        characterId,
-        position: POSICION_POR_PERSONAJE[characterId],
+      escena.personajes.map((characterId) => {
         // Solo actúa quien tiene el turno; el resto acompaña en reposo.
-        gesto: characterId === escena.protagonista ? escena.gesto : ({ tipo: "reposo" } as const),
-      })),
+        const esProtagonista = characterId === escena.protagonista;
+        const gesto = esProtagonista ? escena.gesto : ({ tipo: "reposo" } as const);
+        return {
+          characterId,
+          gesto,
+          destino: destinoDe(characterId, gesto, esProtagonista),
+        };
+      }),
     [escena.personajes, escena.protagonista, escena.gesto],
   );
 
   return (
-    <div className="escena" aria-hidden="true">
-      <Canvas
-        frameloop={hayMovimiento ? "always" : "demand"}
-        camera={{ position: [0, 1.5, 4.2], fov: 40 }}
-        // `powerPreference: "low-power"` y sin antialias: el objetivo es una
-        // laptop de aula, no una estación gráfica. Se medirá antes de subir.
-        gl={{ antialias: false, powerPreference: "low-power" }}
-        dpr={[1, 1.5]}
-      >
-        <hemisphereLight intensity={1.1} groundColor="#c8b89a" />
-        <directionalLight position={[3, 5, 2]} intensity={1.4} />
+    <Canvas
+      frameloop={hayMovimiento ? "always" : "demand"}
+      camera={{ position: [...POSICION_DE_CAMARA], fov: 38 }}
+      onCreated={({ camera }) => camera.lookAt(...PUNTO_DE_MIRA)}
+      // `powerPreference: "low-power"` y sin antialias: el objetivo es una
+      // laptop de aula, no una estación gráfica. Se medirá antes de subir.
+      gl={{ antialias: false, powerPreference: "low-power" }}
+      dpr={[1, 1.5]}
+    >
+      <hemisphereLight intensity={1.1} groundColor="#c8b89a" />
+      <directionalLight position={[3, 5, 2]} intensity={1.4} />
 
-        <Suspense fallback={null}>
-          <IslandScene />
-          {personajes.map(({ characterId, position, gesto }) => (
-            <Character
-              key={characterId}
-              characterId={characterId}
-              position={position}
-              gesto={gesto}
-              sessionVars={escena.sessionVars}
-              menosMovimiento={menosMovimiento}
-              alCambiarActividad={alCambiarActividad}
-            />
-          ))}
-        </Suspense>
-      </Canvas>
-    </div>
+      <Suspense fallback={null}>
+        <IslandScene />
+        {personajes.map(({ characterId, destino, gesto }) => (
+          <Character
+            key={characterId}
+            characterId={characterId}
+            destino={destino}
+            sceneId={escena.sceneId}
+            gesto={gesto}
+            sessionVars={escena.sessionVars}
+            menosMovimiento={menosMovimiento}
+            alCambiarActividad={alCambiarActividad}
+          />
+        ))}
+      </Suspense>
+    </Canvas>
   );
 }

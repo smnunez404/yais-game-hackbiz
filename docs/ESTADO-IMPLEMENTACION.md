@@ -217,9 +217,10 @@ Pendiente, medido pero no resuelto:
   spec, no un olvido de implementación, y la decisión es del equipo: demostrar
   en modo desarrollo, hacer opcionales los minijuegos en el contenido, o
   adelantar SPEC-004.
-- El contenido declara `reviewPolicy.blockProductionIfPending: true` y diez
-  nodos con `review: "VALIDAR"`. Nada de eso se aplica todavía: el único
-  resguardo es el distintivo global.
+- El contenido declara `reviewPolicy.blockProductionIfPending: true` y once
+  marcas `review: "VALIDAR"`: diez nodos y una más dentro de la configuración
+  del minijuego de `s02_brujula`, que se verá cuando exista SPEC-004. Nada de
+  eso se aplica todavía: el único resguardo es el distintivo global.
 - El material del debrief (`adultOnly: true`) se muestra en la misma pantalla
   proyectada que mira el curso. Es lo que pide SPEC-001, pero conviene
   confirmarlo con Arianna.
@@ -258,8 +259,9 @@ siendo la ruta accesible y la que manda.
   termine. Sin ese margen el personaje se congelaba a medio camino entre el
   gesto y el reposo; se detectó midiendo llamadas de dibujo en el navegador, no
   leyendo el código.
-- Con `prefers-reduced-motion` no se reproduce ninguna animación: el personaje
-  se queda en el primer cuadro de `Idle` y el bucle no se enciende (AC-7).
+- Con `prefers-reduced-motion` no se reproduce ninguna animación ni caminata:
+  el personaje aparece colocado en su sitio, en el primer cuadro de `Idle`, y
+  el bucle no se enciende (AC-7). Comprobado en un navegador real, ver abajo.
 - El retrato 2D se mantiene aunque el 3D funcione: es lo que dice quién habla, y
   es el único indicio cuando quien habla no tiene modelo.
 
@@ -297,6 +299,60 @@ soporte.
 - La vuelta a `Idle` deja al personaje congelado cuando la escena está quieta.
   Es deliberado, por el presupuesto de CPU de una laptop vieja, y está en un
   solo lugar por si en el aula se lee como que el juego se colgó.
+
+### Revisión visual y movimiento (segunda pasada de T-001-06)
+
+Tras comparar con las láminas de `assets/concepts` y con la revisión de
+content-guardian, la escena cambió de forma:
+
+- **La isla está poblada**: sendero, puente, banco, dos árboles, palmera, faro
+  y tres nubes, todo del mundo mínimo ya sincronizado. Las posiciones no se
+  adivinaron: se midió la caja contenedora real de cada GLB (la isla mide
+  6,27 × 6,30 con el césped a y≈0,2; el faro, 4,65 de alto).
+- **El lienzo ocupa la parte alta y el diálogo se apoya encima**, como en
+  `isla-acuerdos-core-screens.png`. El panel sigue siendo opaco: el texto
+  conserva sus 16,20:1 de contraste medido, no se apoya en transparencias.
+- **Las decisiones son tarjetas** con el icono grande sobre un disco de color
+  y el texto debajo, en vez de filas de lista. Los iconos siguen siendo SVG
+  dibujados en código: las láminas son brief de arte y no se recortan
+  (`assets/concepts/ASSET-INVENTORY.md`). El disco de color es decoración; la
+  silueta, el texto y el orden dicen lo mismo sin él.
+- **Los personajes caminan.** Al empezar cada escena entran desde el sendero
+  hasta su sitio en vez de aparecer de golpe, y se desplazan al claro cuando el
+  guion pide locomoción (las cinco intenciones mapeadas como `Locomotion`).
+  Caminar manda sobre gesticular: mientras se desplaza suena `Walk` —o `Roll`
+  en el caso de Luna— y el gesto se retoma al llegar. No hay control del
+  jugador: la exploración libre es otra spec (SPEC-004, `free_look`).
+
+**Medido en el navegador, con el movimiento activo**
+
+- Escena asentada: **cero** llamadas de dibujo en 1,5 s.
+- Al cambiar de escena: **1665** llamadas en 700 ms, mientras los dos
+  personajes entran caminando; luego vuelve a cero.
+
+**Hallazgo del entorno de prueba**
+
+El navegador donde se probó tiene `prefers-reduced-motion: reduce` activo. Eso
+verificó AC-7 en un navegador real —sin caminata, sin clips, bucle apagado, el
+personaje colocado directamente en su sitio— y explica por qué las primeras
+capturas se veían estáticas. Para ver el movimiento hubo que desactivar esa
+preferencia en la página.
+
+**Correcciones de la revisión de content-guardian**
+
+- `resolveAnimationClip` ahora **sí** advierte en desarrollo cuando una
+  intención cae en un clip de relleno (punto 3 de T-001-06). Antes el doc lo
+  daba por hecho y el código no lo hacía: 40 intenciones marcadas `fallback` se
+  reproducían en silencio.
+- `useGLTF` se llama con el decodificador Draco desactivado. Los GLB de hoy no
+  lo usan, pero `scripts/optimize-glb.ps1` comprime con Draco por defecto, y si
+  alguien lo usara antes de la demo el aula sin Internet se quedaría sin
+  personajes pidiendo el decodificador a un CDN de Google.
+- La escena solo recibe las variables de sesión de saludo. `insistedLuna`
+  —que registra que alguien pasó por encima de un «no»— ya no llega ahí, así
+  que ningún gesto puede depender de ella ni por descuido (Constitución III).
+- El distintivo de borrador es `sticky`: con la escena y el diálogo, la página
+  se desplaza en una laptop de 768 px y AC-10 pide que esté en pantalla.
 
 ## Pendientes y riesgos abiertos
 

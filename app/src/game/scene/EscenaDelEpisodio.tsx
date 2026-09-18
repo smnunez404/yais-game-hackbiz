@@ -37,12 +37,19 @@ export function EscenaDelEpisodio({ vista, estado }: EscenaDelEpisodioProps) {
   if (!hayWebGL || escena.personajes.length === 0) return null;
 
   return (
+    // El envoltorio lo pone esta capa y no `GameCanvas`: así el hueco de la
+    // escena existe desde el primer render y la página no da un salto cuando
+    // termina de llegar el lienzo. Si el límite de error lo retira, el
+    // envoltorio se va con él y la interfaz 2D recupera su sitio sin dejar un
+    // vacío (el estilo del diálogo se apoya en que `.escena` esté o no esté).
     <LimiteDeEscena>
-      {/* Sin `fallback` visible: mientras el GLB baja, el episodio ya se
-          puede jugar en 2D y un cartel de carga solo robaría atención. */}
-      <Suspense fallback={null}>
-        <GameCanvas escena={escena} menosMovimiento={menosMovimiento} />
-      </Suspense>
+      <div className="escena" aria-hidden="true">
+        {/* Sin `fallback` visible: mientras el GLB baja, el episodio ya se
+            puede jugar en 2D y un cartel de carga solo robaría atención. */}
+        <Suspense fallback={null}>
+          <GameCanvas escena={escena} menosMovimiento={menosMovimiento} />
+        </Suspense>
+      </div>
     </LimiteDeEscena>
   );
 }

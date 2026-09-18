@@ -36,6 +36,24 @@
   --color-borde: #d8d2c6;
   --color-acento: #0b5d4f;
   --color-acento-texto: #ffffff;
+  /* Cielo de la escena 3D. Es decorativo y nunca lleva texto encima: el
+     lienzo es transparente y este color se ve por detrás, así que el color
+     del cielo vive con el resto de los tokens y no incrustado en el código
+     de la escena. */
+  --color-cielo: #d3e7f2;
+
+  /* Pasteles decorativos del disco que hay detrás del icono de cada tarjeta
+     de decisión (lámina `isla-acuerdos-core-screens.png`: cada opción lleva
+     su propio color). Son decoración y nunca llevan texto encima; lo único
+     que se apoya en ellos es el trazo del icono, en --color-texto, y todos
+     superan con holgura el 3:1 que WCAG pide para un elemento no textual:
+       sol 12.85:1 · coral 11.35:1 · turquesa 11.83:1 · hoja 12.08:1
+     El color nunca es el único significado: la silueta del icono, el texto
+     de la opción y el orden dicen lo mismo sin él. */
+  --color-tarjeta-sol: #fbe3a8;
+  --color-tarjeta-coral: #f8cfc4;
+  --color-tarjeta-turquesa: #bfe3e5;
+  --color-tarjeta-hoja: #cfe6b8;
   --color-borrador-fondo: #fdefd2;
   --color-borrador-borde: #8a5a00;
   --color-borrador-texto: #4a3000;

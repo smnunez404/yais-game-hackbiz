@@ -133,6 +133,27 @@ describe("mapa de intenciones de animación", () => {
     expect(CHARACTERS.luna.availableClips).not.toContain("Walk");
   });
 
+  it("advierte en desarrollo cuando la intención se rellena con otro clip", () => {
+    const advertencia = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    // `greet_hug_short` está marcada `fallback`: no existe clip de abrazo y se
+    // usa un relleno honesto. Quien dirige arte tiene que enterarse (T-001-06,
+    // punto 3), no descubrirlo proyectando.
+    resolveAnimationClip("greet_hug_short", "capi");
+
+    expect(advertencia).toHaveBeenCalledTimes(1);
+    expect(advertencia.mock.calls[0]?.[0]).toContain("no tiene clip propio");
+  });
+
+  it("no advierte cuando la intención tiene un clip que la representa", () => {
+    const advertencia = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    // `wave` es "aproximado": el clip `Wave` sí representa la intención.
+    resolveAnimationClip("wave", "capi");
+
+    expect(advertencia).not.toHaveBeenCalled();
+  });
+
   it("advierte en desarrollo cuando la intención es desconocida", () => {
     const advertencia = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     resolveAnimationClip("intencion_totalmente_inventada", "capi");
