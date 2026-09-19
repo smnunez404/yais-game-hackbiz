@@ -1095,3 +1095,57 @@ Queda pendiente, y no es una decisión que le corresponda a quien escribió
 esto: que Arianna revise la redacción exacta de `EP01_S06_F003` y decida si
 `EP01_S06_F002` necesita ajustarse también, dado que ambas están ahora en la
 misma pregunta abierta de `spec.md`.
+
+## 2026-09-18 — Botella y plantín repartidos en el primer anillo
+
+Los cinco basureros (`recycling_bin`) que se agregaron antes en `isla-partida`
+ya se ven bien, pero el usuario reportó que no encontraba la botella
+(`water_bottle`) ni el plantín (`seedling`): había solo una unidad de cada uno,
+apretados en el mismo rincón de `isla-partida` junto a `water_drop` y otro
+basurero. Pidió al menos cinco botellas y cinco plantines, repartidos en islas
+distintas, sin amontonarlos todos en el mismo sitio.
+
+Se repartieron en seis islas del primer anillo (no en `isla-partida`, que ya
+tenía 14 piezas; no en el segundo/tercer anillo, que quedan lejos del punto de
+partida):
+
+- `isla-faro`: botella + plantín
+- `isla-mirador`: botella + plantín (la isla con más margen disponible)
+- `isla-caleta`: botella + plantín
+- `isla-lago`: botella + plantín (sin ancla de personaje, la más holgada)
+- `isla-palmeras`: solo botella (ya tenía 4 piezas más el ancla de
+  `enc-luna-palmeras`; no había margen cómodo para dos props nuevos)
+- `isla-arenal`: solo plantín (tiene DOS anclas de personaje,
+  `enc-tomi-arenal` y `enc-clara-arenal`, más apretada que el resto)
+
+Cada posición se verificó con el mismo método que ya se usó para corregir
+`isla-partida`: un script desechable (`npx tsx`, borrado antes de terminar)
+que reproduce `decoradoDeIsla` y confirma que la pieza cae donde se pidió
+(`movido=false`) con margen positivo contra el borde caminable, contando
+también el choque contra senderos, puentes y las zonas circulares de las
+anclas de personaje (`enc-*`) cercanas. Donde el radio genérico
+(`RADIO_DECORATIVO = 0.45`) no dejaba margen positivo (`isla-palmeras`,
+`isla-arenal`), se usó el mismo campo opcional `radio` de `DecorPropuesto` que
+ya existía para `isla-partida`, con un valor ajustado al tamaño real de cada
+modelo.
+
+Hallazgo colateral, no corregido porque está fuera del alcance de esta tarea:
+al correr el mismo verificador sobre el decorado YA EXISTENTE de estas seis
+islas (banco, palmera, flor, etc.), varias piezas arrojan margen negativo —
+es decir, el mismo bug de colisión que se corrigió solo en `isla-partida`
+también afecta decorado preexistente de otras islas del primer anillo. Queda
+pendiente decidir si abrir una tarea aparte para revisar y corregir esas
+islas también.
+
+Limitación técnica registrada, no implementada: el pedido incluía que alguna
+botella se viera «tirada» en el suelo en vez de de pie. `PiezaDelMundo` (en
+`IslandScene.tsx`) solo admite `rotationY` (giro sobre el eje vertical); no
+hay soporte para inclinar un modelo en los ejes X/Z. Agregarlo sería un
+cambio de mayor alcance al componente y a `DecorPropuesto`, no una tarea de
+colocación — no se implementó.
+
+Verificado en verde: `npx vitest run src/game/scene/colocacion.test.ts` (19
+tests), `npx tsc -p tsconfig.app.json`, `npx eslint
+src/game/scene/IslandScene.tsx`, `node scripts/check-safety.mjs` (sin
+violaciones nuevas), y `npm run verify` completo desde la raíz (317 tests,
+build verde, sin advertencias nuevas de `check:safety`).

@@ -363,30 +363,52 @@ const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
     { id: "tree_round", angulo: 1.6, distancia: 0.65, scale: 0.8 },
     { id: "bench", angulo: 0.4, distancia: 0.5, rotationY: -0.5 },
     { id: "flower_bush", angulo: 2.2, distancia: 0.55 },
+    // Botella y plantín repartidos por el primer anillo (pedido explícito: no
+    // los cinco de cada uno amontonados en `isla-partida`, que ya tiene 14
+    // piezas). Verificado con el mismo script desechable que ya se usó para
+    // `isla-partida`: `radio` más ajustado que el genérico porque esta isla
+    // ya tiene un ancla de personaje (`enc-tomi-faro`/`enc-beto-faro`) cerca,
+    // que también cuenta como zona prohibida.
+    { id: "water_bottle", angulo: 0.864, distancia: 0.8, radio: 0.22 },
+    { id: "seedling", angulo: 3.927, distancia: 0.82, radio: 0.2 },
   ],
   "isla-palmeras": [
     { id: "palm", angulo: -0.6, distancia: 0.7, scale: 0.9 },
     { id: "palm", angulo: 1.2, distancia: 0.65, scale: 0.75 },
     { id: "tree_round", angulo: 2.6, distancia: 0.6, scale: 0.7 },
     { id: "flower_bush", angulo: 0.2, distancia: 0.5 },
+    // Una botella (no plantín: esta isla ya tiene cuatro piezas más el
+    // ancla de `enc-luna-palmeras` y no queda margen cómodo para dos props
+    // nuevos). `radio` reducido porque con el genérico no había hueco con
+    // margen positivo contra el borde caminable.
+    { id: "water_bottle", angulo: 5.498, distancia: 0.82, radio: 0.15 },
   ],
   "isla-mirador": [
     { id: "lighthouse", angulo: -Math.PI / 2, distancia: 0.75, scale: 0.85 },
     { id: "stairs_three", angulo: -Math.PI / 2 + 0.5, distancia: 0.45, rotationY: -Math.PI / 2 },
     { id: "bench", angulo: 0.5, distancia: 0.55, rotationY: 1.0 },
     { id: "tree_round", angulo: 2.2, distancia: 0.55, scale: 0.8 },
+    // La isla más grande del primer anillo: la que mejor margen deja.
+    { id: "water_bottle", angulo: 2.932, distancia: 0.2, radio: 0.22 },
+    { id: "seedling", angulo: 2.932, distancia: 0.6, radio: 0.27 },
   ],
   "isla-caleta": [
     { id: "palm", angulo: 0.6, distancia: 0.7, scale: 0.8 },
     { id: "palm", angulo: -1.0, distancia: 0.65, scale: 0.7 },
     { id: "bench", angulo: -0.2, distancia: 0.5, rotationY: -0.4 },
     { id: "flower_bush", angulo: 1.8, distancia: 0.5 },
+    { id: "water_bottle", angulo: 2.958, distancia: 0.66, radio: 0.22 },
+    { id: "seedling", angulo: 3.351, distancia: 0.7, radio: 0.27 },
   ],
   "isla-arenal": [
     // Sin banco a propósito: no todas las islas tienen que ofrecer lo mismo.
     { id: "palm", angulo: 0.7, distancia: 0.7, scale: 0.85 },
     { id: "palm", angulo: -0.8, distancia: 0.65, scale: 0.7 },
     { id: "palm", angulo: 2.4, distancia: 0.6, scale: 0.6 },
+    // Solo plantín aquí: esta isla tiene DOS anclas de personaje
+    // (`enc-tomi-arenal` y `enc-clara-arenal`), más apretada que el resto
+    // del primer anillo.
+    { id: "seedling", angulo: 3.063, distancia: 0.8, radio: 0.18 },
   ],
   "isla-acuerdos": [
     // El guion pone `lighthouse: "off"` al llegar. No se oculta la pieza: un
@@ -430,6 +452,10 @@ const TEMAS_POR_ISLA: Readonly<Record<string, readonly DecorPropuesto[]>> = {
     { id: "palm", angulo: 0.4, distancia: 0.65, scale: 0.75 },
     { id: "bench", angulo: -1.6, distancia: 0.5, rotationY: 0.5 },
     { id: "flower_bush", angulo: 2.0, distancia: 0.5 },
+    // Sin ancla de personaje en esta isla: la más holgada de las seis para
+    // sumar los dos props nuevos.
+    { id: "water_bottle", angulo: 5.524, distancia: 0.2, radio: 0.22 },
+    { id: "seedling", angulo: 3.351, distancia: 0.74, radio: 0.27 },
   ],
   "isla-bosque": [
     { id: "tree_round", angulo: -0.8, distancia: 0.65, scale: 0.9 },
